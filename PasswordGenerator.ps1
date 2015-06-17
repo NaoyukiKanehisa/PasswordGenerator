@@ -145,7 +145,7 @@ $GroupBox1.Controls.Add($Button4)
 $Label4 = New-Object System.Windows.Forms.Label
 $Label4.Location = New-Object System.Drawing.Size(195,75)
 $Label4.Size = New-Object System.Drawing.Size(220,20)
-$Label4.Text = '!"#$%&''()*+,-./:;<=>?@[\]^_`{|}~'
+$Label4.Text = '!"#$%&&''()*+,-./:;<=>?@[\]^_`{|}~'
 $Label4.TextAlign = "MiddleLeft"
 $Label4.BorderStyle = "Fixed3D"
 $Label4.Font = "ＭＳ ゴシック,9"
