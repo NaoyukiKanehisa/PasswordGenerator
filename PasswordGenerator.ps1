@@ -668,13 +668,14 @@ $Button16.Add_Click({
 						$JsonArr = New-Object System.Collections.ArrayList
 					}
 					process {
-						$InputJson = foreach($input in $InputObject.GetEnumerator() | ? { $_.Value })
+						$InputJson = New-Object System.Collections.ArrayList
+						foreach($input in $InputObject.GetEnumerator())
 						{
 							$type = $input.Value.GetType()
 							$Ser.($Type) = New-Object System.Runtime.Serialization.Json.DataContractJsonSerializer $type
 							$stream = New-Object System.IO.MemoryStream
 							$Ser.($Type).WriteObject($stream, $Input.Value)
-							'"'+$input.Key+'": ' + (Read-Stream $stream)
+							[Void]$InputJson.Add('"'+$input.Key+'": ' + (Read-Stream $stream))
 						}
 						[Void]$JsonArr.Add("{" +($InputJson -Join ",")+ "}")
 					}
