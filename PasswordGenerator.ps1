@@ -666,15 +666,15 @@ $Button16.Add_Click({
 							$Serialize.($Type) = New-Object System.Runtime.Serialization.Json.DataContractJsonSerializer $type
 							$Stream = New-Object System.IO.MemoryStream
 							$Serialize.($Type).WriteObject($Stream,$Input.Value)
-							[Void]$InputJson.Add('"'+$Input.Key+'": ' + [System.Text.Encoding]::UTF8.GetString($Stream.ToArray(),0,$Stream.ToArray().Length))
+							[Void]$InputJson.Add("`r`n    """ + $Input.Key + """: " + [System.Text.Encoding]::UTF8.GetString($Stream.ToArray(),0,$Stream.ToArray().Length))
 						}
-						[Void]$JsonArr.Add("{$($InputJson -Join ",")}")
+						[Void]$JsonArr.Add("`r`n  {$($InputJson -Join ",")`r`n  }")
 					}
 					end
 					{
 						if($JsonArr.Count -gt 1)
 						{
-							return "[$($JsonArr -Join ",")]"
+							return "[$($JsonArr -Join ",")`r`n]"
 						}
 						else
 						{
@@ -687,8 +687,8 @@ $Button16.Add_Click({
 				foreach ($Input in $table)
 				{
 					$Hash[$i] = @{
-						"No." = $i + 1;
-						"パスワード" = $Input.{パスワード};
+						"No." = $i + 1
+						"パスワード" = $Input.{パスワード}
 						"読み方" = $Input.{読み方}
 					}
 					$i ++
