@@ -670,18 +670,8 @@ $Button16.Add_Click({
 					process {
 						$InputJson = foreach($input in $InputObject.GetEnumerator() | ? { $_.Value })
 						{
-							if($input.Value -is [Hashtable])
-							{
-								'"'+$input.Key+'": ' + (New-JSon $input.Value)
-							}
-							else
-							{
-								$type = $input.Value.GetType()
-								if(!$Ser.ContainsKey($Type))
-								{
-									$Ser.($Type) = New-Object System.Runtime.Serialization.Json.DataContractJsonSerializer $type
-								}
-							}
+							$type = $input.Value.GetType()
+							$Ser.($Type) = New-Object System.Runtime.Serialization.Json.DataContractJsonSerializer $type
 							$stream = New-Object System.IO.MemoryStream
 							$Ser.($Type).WriteObject($stream, $Input.Value)
 							'"'+$input.Key+'": ' + (Read-Stream $stream)
