@@ -389,7 +389,6 @@ $Button15.Add_Click({
 	}
 	$SetVariable = [Scriptblock]::Create($SetVariableStr -Join ";")
 	$SetVariable.Invoke()
-
 	$RunspacePool = [RunspaceFactory]::CreateRunspacePool(1,2,$SessionState,$Host)
 	$RunspacePool.ApartmentState = 'STA'
 	$RunspacePool.Open()
@@ -418,15 +417,12 @@ $Button15.Add_Click({
 		Pipe = $Job
 		Result = $Job.BeginInvoke()
 	}
-
 	[Void]$ListView1.Items.Clear()
 	$Button15.Enabled = $False
 	$Button16.Enabled = $False
 	$Button17.Enabled = $False
 	$Button18.Enabled = $False
-
 	$BackJob.Result.AsyncWaitHandle.WaitOne()
-
 	$Global:table = $BackJob.Pipe.EndInvoke($BackJob.Result)
 	for ($i = 0;$i -lt $NumberBox3.Text;$i ++)
 	{
@@ -554,7 +550,6 @@ $Button16.Add_Click({
 		$RunspacePool.Open()
 		$Job = [PowerShell]::Create()
 		$Job.RunspacePool = $RunspacePool
-
 		$RunJob = {
 			$Form4 = New-Object System.Windows.Forms.Form
 			$Form4.Size = New-Object System.Drawing.Size(300,100)
@@ -563,7 +558,6 @@ $Button16.Add_Click({
 			$Form4.Text = "PasswordGenerator"
 			$Form4.ControlBox = $False
 			$Form4.StartPosition = "CenterScreen"
-
 			$Label9 = New-Object System.Windows.Forms.Label
 			$Label9.Location = New-Object System.Drawing.Size(20,20)
 			$Label9.Size = New-Object System.Drawing.Size(220,20)
@@ -655,49 +649,53 @@ $Button16.Add_Click({
 		{
 			$Job.AddScript({
 				Add-Type -Assembly System.ServiceModel.Web,System.Runtime.Serialization
-				function Create-Json ()
+				function Read-Stream
+				{
+					param([Parameter(Position=0,ValueFromPipeline=$True)]$Stream)
+					$bytes = $Stream.ToArray()
+					return [System.Text.Encoding]::UTF8.GetString($bytes,0,$bytes.Length)
+				}
+				function Create-Json
 				{
 					param([Parameter(ValueFromPipeline=$True)][HashTable]$InputObject)
-					begin {
-						function Read-Stream {
-							param([Parameter(Position=0,ValueFromPipeline=$True)]$Stream)
-							$bytes = $Stream.ToArray()
-							[System.Text.Encoding]::UTF8.GetString($bytes,0,$bytes.Length)
-						}
-						$Ser = @{}
+					begin
+					{
+						$Serialize = @{}
 						$JsonArr = New-Object System.Collections.ArrayList
 					}
-					process {
+					process
+					{
 						$InputJson = New-Object System.Collections.ArrayList
-						foreach($input in $InputObject.GetEnumerator())
+						foreach($Input in $InputObject.GetEnumerator())
 						{
-							$type = $input.Value.GetType()
-							$Ser.($Type) = New-Object System.Runtime.Serialization.Json.DataContractJsonSerializer $type
-							$stream = New-Object System.IO.MemoryStream
-							$Ser.($Type).WriteObject($stream, $Input.Value)
-							[Void]$InputJson.Add('"'+$input.Key+'": ' + (Read-Stream $stream))
+							$type = $Input.Value.GetType()
+							$Serialize.($Type) = New-Object System.Runtime.Serialization.Json.DataContractJsonSerializer $type
+							$Stream = New-Object System.IO.MemoryStream
+							$Serialize.($Type).WriteObject($Stream,$Input.Value)
+							[Void]$InputJson.Add('"'+$Input.Key+'": ' + (Read-Stream $Stream))
 						}
 						[Void]$JsonArr.Add("{" +($InputJson -Join ",")+ "}")
 					}
-					end {
+					end
+					{
 						if($JsonArr.Count -gt 1)
 						{
-							"[$($JsonArr -Join ",")]"
+							return "[$($JsonArr -Join ",")]"
 						}
 						else
 						{
-							$JsonArr
+							return $JsonArr
 						}
 					}
 				}
 				$Hash = New-Object object[] ($table.count)
 				$i = 0
-				foreach ($input in $table)
+				foreach ($Input in $table)
 				{
 					$Hash[$i] = @{
 						"No." = $i + 1;
-						"パスワード" = $input.{パスワード};
-						"読み方" = $input.{読み方}
+						"パスワード" = $Input.{パスワード};
+						"読み方" = $Input.{読み方}
 					}
 					$i ++
 				}
@@ -937,7 +935,7 @@ function EditDialog($title,$text,$default,$pattern,$labelnumber)
 	$TextBox2.Font = "ＭＳ ゴシック,10"
 	$TextBox2.Text = $text
 	$TextBox2.Add_TextChanged({
-		if (([regex]::replace($TextBox2.Text,$pattern,"")).Equals("")) {$Button13.Enabled = $False} else {$Button13.Enabled = $True}
+		if (([Regex]::Replace($TextBox2.Text,$pattern,"")).Equals("")) {$Button13.Enabled = $False} else {$Button13.Enabled = $True}
 	})
 	$TextBox2.Anchor = ([System.Windows.Forms.AnchorStyles]([System.Windows.Forms.AnchorStyles]::Top -bor [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left -bor [System.Windows.Forms.AnchorStyles]::Right))
 	$TextBox2.Add_keyDown({
