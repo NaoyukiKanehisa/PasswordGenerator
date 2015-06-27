@@ -348,6 +348,7 @@ $Button15.Location = New-Object System.Drawing.Size(10,10)
 $Button15.Size = New-Object System.Drawing.Size(60,20)
 $Button15.Text = "生成(&G)"
 $Button15.Add_Click({
+	if ($NumberBox3.Text -eq "") {$NumberBox3.Text = 1}
 	$Form4 = New-Object System.Windows.Forms.Form
 	$Form4.Size = New-Object System.Drawing.Size(300,100)
 	$Form4.FormBorderStyle = "FixedSingle"
@@ -586,21 +587,13 @@ $Button16.Add_Click({
 			}
 			$BackJob.Result.AsyncWaitHandle.WaitOne()
 			[Void]$Form4.Close()
-			$retError = $BackJob.Pipe.EndInvoke($BackJob.Result)
-			if ($retError.Count -gt 0)
-			{
-				[System.Windows.Forms.MessageBox]::Show("ファイル出力時にエラーを検知しました。`r`n正しくファイルが保存されなかった可能性があります。","",0,16)
-			}
+			$BackJob.Pipe.EndInvoke($BackJob.Result)
 			[System.Windows.Forms.Application]::DoEvents()
 		}
 		if ($SaveDialog.FilterIndex.Equals(1))
 		{
 			$Job.AddScript({
 				$table | Select-Object "No.","パスワード","読み方" | Export-Csv -Encoding utf8 -NoTypeInformation -Path $SaveDialog.FileNames[0]
-				if ($Error.Count -gt 0)
-				{
-					return $Error
-				}
 			})
 			$RunJob.Invoke()
 		}
@@ -610,10 +603,6 @@ $Button16.Add_Click({
 				$content = $table | Select-Object "No.","パスワード","読み方" | ConvertTo-CSV -NoTypeInformation
 				$Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding($False)
 				[System.IO.File]::WriteAllLines($SaveDialog.FileNames[0], $content, $Utf8NoBomEncoding)
-				if ($Error.Count -gt 0)
-				{
-					return $Error
-				}
 			})
 			$RunJob.Invoke()
 		}
@@ -631,10 +620,6 @@ $Button16.Add_Click({
 				$content = $table | ConvertTo-HTML -property "No.","パスワード","読み方" -head $head.ToString()
 				$content = $content[0..7] + (($content[8..($content.count -1)]) -replace ' ','&nbsp;')
 				[System.IO.File]::WriteAllLines($SaveDialog.FileNames[0], $content, $Utf8NoBomEncoding)
-				if ($Error.Count -gt 0)
-				{
-					return $Error
-				}
 			})
 			$RunJob.Invoke()
 		}
@@ -663,44 +648,72 @@ $Button16.Add_Click({
 				$XmlWriter.Formatting = [System.Xml.Formatting]::Indented
 				$Xml.Save($XmlWriter)
 				$XmlWriter.Close()
-				if ($Error.Count -gt 0)
-				{
-					return $Error
-				}
 			})
 			$RunJob.Invoke()
 		}
 		elseif ($SaveDialog.FilterIndex.Equals(5))
 		{
-			if ($PSVersionTable.PSVersion.Major -ge 3)
-			{
-				:L2 while ($True)
+			$Job.AddScript({
+				Add-Type -Assembly System.ServiceModel.Web,System.Runtime.Serialization
+				function Read-Stream {
+					param([Parameter(Position=0,ValueFromPipeline=$True)]$Stream)
+					$bytes = $Stream.ToArray()
+					[System.Text.Encoding]::UTF8.GetString($bytes,0,$bytes.Length)
+				}
+				function New-Json ()
 				{
-					if ($CheckBox4.Checked)
-					{
-						$ret = [System.Windows.Forms.MessageBox]::Show("JSON形式の出力は一部不具合があります。`r`n特定の記号の組み合わせにより正しくファイルが保存されない場合があります。","",1,48)
-						if ($ret -eq "Cancel")
+					param([Parameter(ValueFromPipeline=$True)][HashTable]$InputObject)
+					begin {
+						$Ser = @{}
+						$JsonArr = New-Object System.Collections.ArrayList
+					}
+					process {
+						$InputJson = foreach($input in $InputObject.GetEnumerator() | ? { $_.Value })
 						{
-							break L2
+							if($input.Value -is [Hashtable])
+							{
+								'"'+$input.Key+'": ' + (New-JSon $input.Value)
+							}
+							else
+							{
+								$type = $input.Value.GetType()
+								if(!$Ser.ContainsKey($Type))
+								{
+									$Ser.($Type) = New-Object System.Runtime.Serialization.Json.DataContractJsonSerializer $type
+								}
+							}
+							$stream = New-Object System.IO.MemoryStream
+							$Ser.($Type).WriteObject($stream, $Input.Value)
+							'"'+$input.Key+'": ' + (Read-Stream $stream)
+						}
+						[Void]$JsonArr.Add("{" +($InputJson -Join ",")+ "}")
+					}
+					end {
+						if($JsonArr.Count -gt 1)
+						{
+							"[$($JsonArr -Join ",")]"
+						}
+						else
+						{
+							$JsonArr
 						}
 					}
-					$Job.AddScript({
-						$Content = $table | Select-Object "No.","パスワード","読み方" | ConvertTo-JSON
-						$Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding($False)
-						[System.IO.File]::WriteAllLines($SaveDialog.FileNames[0], $Content, $Utf8NoBomEncoding)
-						if ($Error.Count -gt 0)
-						{
-							return $Error
-						}
-					})
-					$RunJob.Invoke()
-					break L2
 				}
-			}
-			else
-			{
-				$MsgBox.Invoke("PowerShell 2.0 以下のバージョンではこの機能をサポートしていません。","",16)
-			}
+				$Hash = New-Object object[] ($table.count)
+				$i = 0
+				foreach ($rows in $table)
+				{
+					$Hash[$i] = @{
+						"No." = $i + 1;
+						"パスワード" = $table[$i].{パスワード};
+						"読み方" = $table[$i].{読み方}
+					}
+					$i ++
+				}
+				$Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding($False)
+				[System.IO.File]::WriteAllLines($SaveDialog.FileNames[0],($Hash | New-Json),$Utf8NoBomEncoding)
+			})
+			$RunJob.Invoke()
 		}
 		else
 		{
@@ -712,10 +725,6 @@ $Button16.Add_Click({
 				$Writer = New-object System.IO.StreamWriter($SaveDialog.FileNames[0],$False,[Text.Encoding]::GetEncoding("Shift_JIS"))
 				$Writer.Write(($strpassword -Join "`r`n"))
 				$Writer.Close()
-				if ($Error.Count -gt 0)
-				{
-					return $Error
-				}
 			})
 			$RunJob.Invoke()
 		}
