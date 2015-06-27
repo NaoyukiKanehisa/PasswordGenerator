@@ -649,15 +649,9 @@ $Button16.Add_Click({
 		{
 			$Job.AddScript({
 				Add-Type -Assembly System.ServiceModel.Web,System.Runtime.Serialization
-				function Read-Stream
-				{
-					param([Parameter(Position=0,ValueFromPipeline=$True)]$Stream)
-					$bytes = $Stream.ToArray()
-					return [System.Text.Encoding]::UTF8.GetString($bytes,0,$bytes.Length)
-				}
 				function Create-Json
 				{
-					param([Parameter(ValueFromPipeline=$True)][HashTable]$InputObject)
+					param([Parameter(ValueFromPipeline=$True)]$Hash)
 					begin
 					{
 						$Serialize = @{}
@@ -666,15 +660,15 @@ $Button16.Add_Click({
 					process
 					{
 						$InputJson = New-Object System.Collections.ArrayList
-						foreach($Input in $InputObject.GetEnumerator())
+						foreach($Input in $Hash.GetEnumerator())
 						{
 							$type = $Input.Value.GetType()
 							$Serialize.($Type) = New-Object System.Runtime.Serialization.Json.DataContractJsonSerializer $type
 							$Stream = New-Object System.IO.MemoryStream
 							$Serialize.($Type).WriteObject($Stream,$Input.Value)
-							[Void]$InputJson.Add('"'+$Input.Key+'": ' + (Read-Stream $Stream))
+							[Void]$InputJson.Add('"'+$Input.Key+'": ' + [System.Text.Encoding]::UTF8.GetString($Stream.ToArray(),0,$Stream.ToArray().Length))
 						}
-						[Void]$JsonArr.Add("{" +($InputJson -Join ",")+ "}")
+						[Void]$JsonArr.Add("{$($InputJson -Join ",")}")
 					}
 					end
 					{
