@@ -3,7 +3,7 @@
   PowerShellで動作する、パスワード生成GUIプログラム
 .DESCRIPTION
   ランダムなパスワードを生成し、CSVファイルの他、様々な形式でデータを保存できます。
-  対応形式：  CSV、HTML、XML、JSON、テキスト
+  対応形式：  CSV、HTML、XML、JSON、リッチテキスト、プレーンテキスト
 #>
 $MsgBox = {
 	param($str,$title,$icon)
@@ -394,12 +394,12 @@ $Button15.Add_Click({
 	$RunspacePool.Open()
 	$Job = [PowerShell]::Create()
 	$Job.AddScript({
-		$table = New-Object object[] ($NumberBox3.Text)
+		$ListTable = New-Object object[] ($NumberBox3.Text)
 		foreach ($i in (0..($NumberBox3.Text -1)))
 		{
 			Invoke-Expression ($GenerateSettingsLoad2 -Join "`r`n")
 			$password = & $GeneratePassword $Numberofdigits $EachCharCount $RandomCount
-			$table[$i] = New-Object PSObject -Property @{
+			$ListTable[$i] = New-Object PSObject -Property @{
 				"No." = $i + 1
 				"パスワード" = $password
 				"読み方" = ([string]$transcode.Invoke()).Replace([char]0,",")
@@ -410,7 +410,7 @@ $Button15.Add_Click({
 				$ProgressBar1.Value = $i + 1
 			}
 		}
-		return $table
+		return $ListTable
 	})
 	$Job.RunspacePool = $RunspacePool
 	$BackJob = New-Object PSObject -Property @{
@@ -423,12 +423,12 @@ $Button15.Add_Click({
 	$Button17.Enabled = $False
 	$Button18.Enabled = $False
 	$BackJob.Result.AsyncWaitHandle.WaitOne()
-	$Global:table = $BackJob.Pipe.EndInvoke($BackJob.Result)
+	$Global:ListTable = $BackJob.Pipe.EndInvoke($BackJob.Result)
 	for ($i = 0;$i -lt $NumberBox3.Text;$i ++)
 	{
 		[Void]$ListView1.Items.Add(($i + 1))
-		[Void]$ListView1.Items[$i].SubItems.Add($table[$i].{パスワード})
-		[Void]$ListView1.Items[$i].SubItems.Add($table[$i].{読み方})
+		[Void]$ListView1.Items[$i].SubItems.Add($ListTable[$i].{パスワード})
+		[Void]$ListView1.Items[$i].SubItems.Add($ListTable[$i].{読み方})
 	}
 	$ListView1.AutoResizeColumns([Windows.Forms.ColumnHeaderAutoResizeStyle]::HeaderSize)
 	[Void]$Form4.Close()
@@ -524,7 +524,7 @@ $ListView1.Columns.AddRange([System.Windows.Forms.ColumnHeader[]](@($LVcol1, $LV
 $Form3.Controls.Add($ListView1)
 
 $SaveDialog = New-Object Windows.Forms.SaveFileDialog
-$SaveDialog.Filter = "CSV (カンマ区切り/UTF-8 BOM付) (*.csv)|*.csv|CSV (カンマ区切り/UTF-8 BOM無) (*.csv)|*.csv|Web ページ (*.html)|*.html|XML データ (*.xml)|*.xml|JSON データ (*.json)|*.json|テキストファイル (パスワードのみ出力) (*.txt)|*.txt"
+$SaveDialog.Filter = "CSV (カンマ区切り/UTF-8 BOM付) (*.csv)|*.csv|CSV (カンマ区切り/UTF-8 BOM無) (*.csv)|*.csv|XML データ (*.xml)|*.xml|JSON データ (*.json)|*.json|Web ページ (*.html)|*.html|リッチテキスト (*.rtf)|*.rtf|プレーンテキスト (パスワードのみ出力) (*.txt)|*.txt"
 $SaveDialog.InitialDirectory = $path
 $SaveDialog.Title = "保存するファイル名を指定"
 
@@ -541,7 +541,7 @@ $Button16.Add_Click({
 		$Button17.Enabled = $False
 		$Button18.Enabled = $False
 		$SessionState = [System.Management.Automation.Runspaces.InitialSessionState]::CreateDefault()
-		$SessionState.Variables.Add((New-Object System.Management.Automation.Runspaces.SessionStateVariableEntry('table',$table,$null)))
+		$SessionState.Variables.Add((New-Object System.Management.Automation.Runspaces.SessionStateVariableEntry('ListTable',$ListTable,$null)))
 		$SessionState.Variables.Add((New-Object System.Management.Automation.Runspaces.SessionStateVariableEntry('SaveDialog',$SaveDialog,$null)))
 		$SessionState.Variables.Add((New-Object System.Management.Automation.Runspaces.SessionStateVariableEntry('CheckBox4',$CheckBox4,$null)))
 		$SessionState.Variables.Add((New-Object System.Management.Automation.Runspaces.SessionStateVariableEntry('Label9',$Label9,$null)))
@@ -587,37 +587,20 @@ $Button16.Add_Click({
 		if ($SaveDialog.FilterIndex.Equals(1))
 		{
 			$Job.AddScript({
-				$table | Select-Object "No.","パスワード","読み方" | Export-Csv -Encoding utf8 -NoTypeInformation -Path $SaveDialog.FileNames[0]
+				$ListTable | Select-Object "No.","パスワード","読み方" | Export-Csv -Encoding utf8 -NoTypeInformation -Path $SaveDialog.FileNames[0]
 			})
 			$RunJob.Invoke()
 		}
 		elseif ($SaveDialog.FilterIndex.Equals(2))
 		{
 			$Job.AddScript({
-				$content = $table | Select-Object "No.","パスワード","読み方" | ConvertTo-CSV -NoTypeInformation
+				$content = $ListTable | Select-Object "No.","パスワード","読み方" | ConvertTo-CSV -NoTypeInformation
 				$Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding($False)
 				[System.IO.File]::WriteAllLines($SaveDialog.FileNames[0], $content, $Utf8NoBomEncoding)
 			})
 			$RunJob.Invoke()
 		}
 		elseif ($SaveDialog.FilterIndex.Equals(3))
-		{
-			$Job.AddScript({
-				$head = New-Object System.Text.StringBuilder
-				[Void]$head.Append("<meta charset='utf-8'><title>パスワード一覧</title><style>")
-				[Void]$head.Append("BODY{font-family:ＭＳ ゴシック;background-color:#FFFFFF;}")
-				[Void]$head.Append("TABLE{border-width: 1px;border-style: solid;border-color: black;border-collapse: collapse;}")
-				[Void]$head.Append("TH{border-width: 1px;padding: 0px;border-style: solid;border-color: black;background-color:#00FFFF}")
-				[Void]$head.Append("TD{border-width: 1px;padding: 0px;border-style: solid;border-color: black;background-color:#FFFFFF}")
-				[Void]$head.Append("</style>")
-				$Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding($False)
-				$content = $table | ConvertTo-HTML -property "No.","パスワード","読み方" -head $head.ToString()
-				$content = $content[0..7] + (($content[8..($content.count -1)]) -replace ' ','&nbsp;')
-				[System.IO.File]::WriteAllLines($SaveDialog.FileNames[0], $content, $Utf8NoBomEncoding)
-			})
-			$RunJob.Invoke()
-		}
-		elseif ($SaveDialog.FilterIndex.Equals(4))
 		{
 			$Job.AddScript({
 				$Xml = New-Object System.XML.XMLDocument
@@ -630,13 +613,13 @@ $Button16.Add_Click({
 					$number.PSBase.InnerText = $_ + 1
 					[Void]$data.AppendChild($number)
 					$pass = $Xml.CreateElement("パスワード")
-					$pass.PSBase.InnerText = $table[$_].{パスワード}
+					$pass.PSBase.InnerText = $ListTable[$_].{パスワード}
 					[Void]$data.AppendChild($pass)
 					$read = $Xml.CreateElement("読み方")
-					$read.PSBase.InnerText = $table[$_].{読み方}
+					$read.PSBase.InnerText = $ListTable[$_].{読み方}
 					[Void]$data.AppendChild($read)
 				}
-				0..($table.count -1)| XmlAppend
+				0..($ListTable.count -1)| XmlAppend
 				$Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding($False)
 				$XmlWriter = New-Object System.Xml.XmlTextWriter($SaveDialog.FileNames[0],$Utf8NoBomEncoding)
 				$XmlWriter.Formatting = [System.Xml.Formatting]::Indented
@@ -645,7 +628,7 @@ $Button16.Add_Click({
 			})
 			$RunJob.Invoke()
 		}
-		elseif ($SaveDialog.FilterIndex.Equals(5))
+		elseif ($SaveDialog.FilterIndex.Equals(4))
 		{
 			$Job.AddScript({
 				Add-Type -Assembly System.ServiceModel.Web,System.Runtime.Serialization
@@ -682,9 +665,9 @@ $Button16.Add_Click({
 						}
 					}
 				}
-				$Hash = New-Object object[] ($table.count)
+				$Hash = New-Object object[] ($ListTable.count)
 				$i = 0
-				foreach ($Input in $table)
+				foreach ($Input in $ListTable)
 				{
 					$Hash[$i] = @{
 						"No." = $i + 1
@@ -698,12 +681,129 @@ $Button16.Add_Click({
 			})
 			$RunJob.Invoke()
 		}
+		elseif ($SaveDialog.FilterIndex.Equals(5))
+		{
+			$Job.AddScript({
+				$head = New-Object System.Text.StringBuilder
+				[Void]$head.Append("<meta charset='utf-8'><title>パスワード一覧</title><style>")
+				[Void]$head.Append("BODY{font-family:ＭＳ ゴシック;background-color:#FFFFFF;}")
+				[Void]$head.Append("TABLE{border-width: 1px;border-style: solid;border-color: black;border-collapse: collapse;}")
+				[Void]$head.Append("TH{border-width: 1px;padding: 0px;border-style: solid;border-color: black;background-color:#00FFFF}")
+				[Void]$head.Append("TD{border-width: 1px;padding: 0px;border-style: solid;border-color: black;background-color:#FFFFFF}")
+				[Void]$head.Append("</style>")
+				$Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding($False)
+				$content = $ListTable | ConvertTo-HTML -property "No.","パスワード","読み方" -head $head.ToString()
+				$content = $content[0..7] + (($content[8..($content.count -1)]) -replace ' ','&nbsp;')
+				[System.IO.File]::WriteAllLines($SaveDialog.FileNames[0], $content, $Utf8NoBomEncoding)
+			})
+			$RunJob.Invoke()
+		}
+		elseif ($SaveDialog.FilterIndex.Equals(6))
+		{
+			$Job.AddScript({
+				$xaml = New-Object System.XML.XMLDocument
+				$root = $xaml.CreateElement('Window')
+				$root.SetAttribute("xmlns","http://schemas.microsoft.com/winfx/2006/xaml/presentation")
+				$root.SetAttribute("xmlns:x","http://schemas.microsoft.com/winfx/2006/xaml")
+				[Void]$Xaml.AppendChild($root)
+				$RichTextBox = $xaml.CreateElement("RichTextBox")
+				[Void]$root.AppendChild($RichTextBox)
+				$RichTextBox.SetAttribute("Name","RTB")
+				$FlowDocument = $xaml.CreateElement("FlowDocument")
+				[Void]$RichTextBox.AppendChild($FlowDocument)
+				$Table = $xaml.CreateElement("Table")
+				[Void]$FlowDocument.AppendChild($Table)
+				$TableRowGroup = $xaml.CreateElement("TableRowGroup")
+				[Void]$Table.AppendChild($TableRowGroup)
+				$TableRow = $xaml.CreateElement("TableRow")
+				[Void]$TableRowGroup.AppendChild($TableRow)
+				$TableRow.SetAttribute("Background","SkyBlue")
+				$TableCell = $xaml.CreateElement("TableCell")
+				[Void]$TableRow.AppendChild($TableCell)
+				$TableCell.SetAttribute("BorderBrush","DarkGray")
+				$TableCell.SetAttribute("BorderThickness","1")
+				$TableCell.SetAttribute("RowSpan","1")
+				$TableCell.SetAttribute("ColumnSpan","1")
+				$Paragraph = $xaml.CreateElement("Paragraph")
+				[Void]$TableCell.AppendChild($Paragraph)
+				$Bold = $xaml.CreateElement("Bold")
+				[Void]$Paragraph.AppendChild($Bold)
+				$Bold.PSBase.InnerText = "No."
+				[Void]$TableCell.AppendChild($Paragraph)
+				$TableCell = $xaml.CreateElement("TableCell")
+				[Void]$TableRow.AppendChild($TableCell)
+				$TableCell.SetAttribute("BorderBrush","DarkGray")
+				$TableCell.SetAttribute("BorderThickness","1")
+				$TableCell.SetAttribute("RowSpan","1")
+				$TableCell.SetAttribute("ColumnSpan","2")
+				$Paragraph = $xaml.CreateElement("Paragraph")
+				[Void]$TableCell.AppendChild($Paragraph)
+				$Bold = $xaml.CreateElement("Bold")
+				[Void]$Paragraph.AppendChild($Bold)
+				$Bold.PSBase.InnerText = "パスワード"
+				[Void]$TableCell.AppendChild($Paragraph)
+				$TableCell = $xaml.CreateElement("TableCell")
+				[Void]$TableRow.AppendChild($TableCell)
+				$TableCell.SetAttribute("BorderBrush","DarkGray")
+				$TableCell.SetAttribute("BorderThickness","1")
+				$TableCell.SetAttribute("RowSpan","1")
+				$TableCell.SetAttribute("ColumnSpan","5")
+				$Paragraph = $xaml.CreateElement("Paragraph")
+				[Void]$TableCell.AppendChild($Paragraph)
+				$Bold = $xaml.CreateElement("Bold")
+				[Void]$Paragraph.AppendChild($Bold)
+				$Bold.PSBase.InnerText = "読み方"
+				foreach ($Input in $ListTable)
+				{
+					$TableRow = $xaml.CreateElement("TableRow")
+					[Void]$TableRowGroup.AppendChild($TableRow)
+					$TableCell = $xaml.CreateElement("TableCell")
+					[Void]$TableRow.AppendChild($TableCell)
+					$TableCell.SetAttribute("BorderBrush","DarkGray")
+					$TableCell.SetAttribute("BorderThickness","1")
+					$TableCell.SetAttribute("RowSpan","1")
+					$TableCell.SetAttribute("ColumnSpan","1")
+					$Paragraph = $xaml.CreateElement("Paragraph")
+					[Void]$TableCell.AppendChild($Paragraph)
+					$Paragraph.PSBase.InnerText = $Input.{No.}
+					$TableCell = $xaml.CreateElement("TableCell")
+					[Void]$TableRow.AppendChild($TableCell)
+					$TableCell.SetAttribute("BorderBrush","DarkGray")
+					$TableCell.SetAttribute("BorderThickness","1")
+					$TableCell.SetAttribute("RowSpan","1")
+					$TableCell.SetAttribute("ColumnSpan","2")
+					$Paragraph = $xaml.CreateElement("Paragraph")
+					[Void]$TableCell.AppendChild($Paragraph)
+					$Paragraph.PSBase.InnerText = $Input.{パスワード}
+					$TableCell = $xaml.CreateElement("TableCell")
+					[Void]$TableRow.AppendChild($TableCell)
+					$TableCell.SetAttribute("BorderBrush","DarkGray")
+					$TableCell.SetAttribute("BorderThickness","1")
+					$TableCell.SetAttribute("RowSpan","1")
+					$TableCell.SetAttribute("ColumnSpan","5")
+					$Paragraph = $xaml.CreateElement("Paragraph")
+					[Void]$TableCell.AppendChild($Paragraph)
+					$Paragraph.PSBase.InnerText = $Input.{読み方}
+				}
+				Add-Type -AssemblyName WindowsBase
+				Add-Type -AssemblyName PresentationCore
+				Add-Type -AssemblyName PresentationFramework
+				Add-Type -AssemblyName system.xaml
+				$HideWindow = [System.Windows.Markup.XamlReader]::Parse($xaml.OuterXML)
+				$RichText = $HideWindow.FindName("RTB")
+				$textRange = New-Object System.Windows.Documents.TextRange($RichText.Document.ContentStart,$RichText.Document.ContentEnd)
+				$fileStream = new-object System.IO.FileStream $SaveDialog.FileNames[0],"Create"
+				$textRange.save($fileStream,[Windows.DataFormats]::Rtf)
+				$fileStream.Close()
+			})
+			$RunJob.Invoke()
+		}
 		else
 		{
 			$Job.AddScript({
 				$strpassword = New-Object System.Collections.ArrayList
-				0..($table.count -1) | & {process{
-					[Void]$strpassword.Add($table[$_].{パスワード})
+				0..($ListTable.count -1) | & {process{
+					[Void]$strpassword.Add($ListTable[$_].{パスワード})
 				}}
 				$Writer = New-object System.IO.StreamWriter($SaveDialog.FileNames[0],$False,[Text.Encoding]::GetEncoding("Shift_JIS"))
 				$Writer.Write(($strpassword -Join "`r`n"))
