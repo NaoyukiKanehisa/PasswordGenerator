@@ -660,13 +660,13 @@ $Button16.Add_Click({
 					process
 					{
 						$InputJson = New-Object System.Collections.ArrayList
-						foreach($Input in $Hash.GetEnumerator())
+						foreach($Input in ($Hash.GetEnumerator() | Sort-Object -Property "Name"))
 						{
 							$type = $Input.Value.GetType()
 							$Serialize.($Type) = New-Object System.Runtime.Serialization.Json.DataContractJsonSerializer $type
 							$Stream = New-Object System.IO.MemoryStream
 							$Serialize.($Type).WriteObject($Stream,$Input.Value)
-							[Void]$InputJson.Add("`r`n    """ + $Input.Key + """: " + [System.Text.Encoding]::UTF8.GetString($Stream.ToArray(),0,$Stream.ToArray().Length))
+							[Void]$InputJson.Add("`r`n    """ + $Input.Key + '": ' + [System.Text.Encoding]::UTF8.GetString($Stream.ToArray(),0,$Stream.ToArray().Length))
 						}
 						[Void]$JsonArr.Add("`r`n  {$($InputJson -Join ",")`r`n  }")
 					}
