@@ -649,19 +649,24 @@ $Button16.Add_Click({
 							$Serialize.($Type) = New-Object System.Runtime.Serialization.Json.DataContractJsonSerializer $type
 							$Stream = New-Object System.IO.MemoryStream
 							$Serialize.($Type).WriteObject($Stream,$Input.Value)
-							[Void]$InputJson.Add("`r`n    """ + $Input.Key + '": ' + [System.Text.Encoding]::UTF8.GetString($Stream.ToArray(),0,$Stream.ToArray().Length))
+							switch ($ListTable.Count -gt 1)
+							{
+								$True {[Void]$InputJson.Add("`r`n    """ + $Input.Key + '": ' + [System.Text.Encoding]::UTF8.GetString($Stream.ToArray(),0,$Stream.ToArray().Length))}
+								$False {[Void]$InputJson.Add("`r`n  """ + $Input.Key + '": ' + [System.Text.Encoding]::UTF8.GetString($Stream.ToArray(),0,$Stream.ToArray().Length))}
+							}
 						}
-						[Void]$JsonArr.Add("`r`n  {$($InputJson -Join ",")`r`n  }")
+						switch ($ListTable.Count -gt 1)
+						{
+							$True {[Void]$JsonArr.Add("`r`n  {$($InputJson -Join ",")`r`n  }")}
+							$False {[Void]$JsonArr.Add("{$($InputJson -Join ",")`r`n}")}
+						}
 					}
 					end
 					{
-						if($JsonArr.Count -gt 1)
+						switch ($ListTable.Count -gt 1)
 						{
-							return "[$($JsonArr -Join ",")`r`n]"
-						}
-						else
-						{
-							return $JsonArr
+							$True {return "[$($JsonArr -Join ",")`r`n]"}
+							$False {return $JsonArr}
 						}
 					}
 				}
