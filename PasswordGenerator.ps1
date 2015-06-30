@@ -3,7 +3,7 @@
   PowerShellで動作する、パスワード生成GUIプログラム
 .DESCRIPTION
   ランダムなパスワードを生成し、CSVファイルの他、様々な形式でデータを保存できます。
-  対応形式：  CSV、HTML、XML、JSON、リッチテキスト、プレーンテキスト
+  対応形式：  CSV、HTML、XML、JSON、RTF、XPS、TXT
 #>
 $MsgBox = {
 	param($str,$title,$icon)
@@ -524,7 +524,7 @@ $ListView1.Columns.AddRange([System.Windows.Forms.ColumnHeader[]](@($LVcol1, $LV
 $Form3.Controls.Add($ListView1)
 
 $SaveDialog = New-Object Windows.Forms.SaveFileDialog
-$SaveDialog.Filter = "CSV (カンマ区切り/UTF-8 BOM付) (*.csv)|*.csv|CSV (カンマ区切り/UTF-8 BOM無) (*.csv)|*.csv|XML データ (*.xml)|*.xml|JSON データ (*.json)|*.json|Web ページ (*.html)|*.html|リッチテキスト (*.rtf)|*.rtf|プレーンテキスト (パスワードのみ出力) (*.txt)|*.txt"
+$SaveDialog.Filter = "CSV (カンマ区切り/UTF-8 BOM付) (*.csv)|*.csv|CSV (カンマ区切り/UTF-8 BOM無) (*.csv)|*.csv|XML データ (*.xml)|*.xml|JSON データ (*.json)|*.json|Web ページ (*.html)|*.html|リッチ テキスト (*.rtf)|*.rtf|XPS ドキュメント (*.xps)|*.xps|プレーン テキスト (パスワードのみ出力) (*.txt)|*.txt"
 $SaveDialog.InitialDirectory = $path
 $SaveDialog.Title = "保存するファイル名を指定"
 
@@ -706,100 +706,236 @@ $Button16.Add_Click({
 		elseif ($SaveDialog.FilterIndex.Equals(6))
 		{
 			$Job.AddScript({
-				$xaml = New-Object System.XML.XMLDocument
-				$root = $xaml.CreateElement('Window')
-				$root.SetAttribute("xmlns","http://schemas.microsoft.com/winfx/2006/xaml/presentation")
-				$root.SetAttribute("xmlns:x","http://schemas.microsoft.com/winfx/2006/xaml")
-				[Void]$Xaml.AppendChild($root)
-				$RichTextBox = $xaml.CreateElement("RichTextBox")
-				[Void]$root.AppendChild($RichTextBox)
+				$Xaml = New-Object System.XML.XMLDocument
+				$Window = $Xaml.CreateElement('Window')
+				$Window.SetAttribute("xmlns","http://schemas.microsoft.com/winfx/2006/xaml/presentation")
+				$Window.SetAttribute("xmlns:x","http://schemas.microsoft.com/winfx/2006/xaml")
+				[Void]$Xaml.AppendChild($Window)
+				$RichTextBox = $Xaml.CreateElement("RichTextBox")
+				[Void]$Window.AppendChild($RichTextBox)
 				$RichTextBox.SetAttribute("Name","RTB")
-				$FlowDocument = $xaml.CreateElement("FlowDocument")
+				$FlowDocument = $Xaml.CreateElement("FlowDocument")
 				[Void]$RichTextBox.AppendChild($FlowDocument)
-				$Table = $xaml.CreateElement("Table")
+				$Table = $Xaml.CreateElement("Table")
 				[Void]$FlowDocument.AppendChild($Table)
-				$TableRowGroup = $xaml.CreateElement("TableRowGroup")
+				$FlowDocument.SetAttribute("ColumnWidth","600")
+				$Table = $Xaml.CreateElement("Table")
+				[Void]$FlowDocument.AppendChild($Table)
+				$Table.SetAttribute("CellSpacing","0")
+				$Table.SetAttribute("BorderBrush","DarkGray")
+				$Table.SetAttribute("BorderThickness","1")
+				$TableColumns = $Xaml.CreateElement("Table.Columns")
+				[Void]$Table.AppendChild($TableColumns)
+				$TableColumn = $Xaml.CreateElement("TableColumn")
+				[Void]$TableColumns.AppendChild($TableColumn)
+				$TableColumn.SetAttribute("Width","55")
+				$TableColumn = $Xaml.CreateElement("TableColumn")
+				[Void]$TableColumns.AppendChild($TableColumn)
+				$TableColumn.SetAttribute("Width","120")
+				$TableColumn = $Xaml.CreateElement("TableColumn")
+				[Void]$TableColumns.AppendChild($TableColumn)
+				$TableColumn.SetAttribute("Width","120")
+				$TableRowGroup = $Xaml.CreateElement("TableRowGroup")
 				[Void]$Table.AppendChild($TableRowGroup)
-				$TableRow = $xaml.CreateElement("TableRow")
+				$TableRow = $Xaml.CreateElement("TableRow")
 				[Void]$TableRowGroup.AppendChild($TableRow)
 				$TableRow.SetAttribute("Background","SkyBlue")
-				$TableCell = $xaml.CreateElement("TableCell")
+				$TableCell = $Xaml.CreateElement("TableCell")
 				[Void]$TableRow.AppendChild($TableCell)
 				$TableCell.SetAttribute("BorderBrush","DarkGray")
 				$TableCell.SetAttribute("BorderThickness","1")
 				$TableCell.SetAttribute("RowSpan","1")
 				$TableCell.SetAttribute("ColumnSpan","1")
-				$Paragraph = $xaml.CreateElement("Paragraph")
+				$Paragraph = $Xaml.CreateElement("Paragraph")
 				[Void]$TableCell.AppendChild($Paragraph)
-				$Bold = $xaml.CreateElement("Bold")
+				$Bold = $Xaml.CreateElement("Bold")
 				[Void]$Paragraph.AppendChild($Bold)
 				$Bold.PSBase.InnerText = "No."
 				[Void]$TableCell.AppendChild($Paragraph)
-				$TableCell = $xaml.CreateElement("TableCell")
+				$TableCell = $Xaml.CreateElement("TableCell")
 				[Void]$TableRow.AppendChild($TableCell)
 				$TableCell.SetAttribute("BorderBrush","DarkGray")
 				$TableCell.SetAttribute("BorderThickness","1")
 				$TableCell.SetAttribute("RowSpan","1")
 				$TableCell.SetAttribute("ColumnSpan","2")
-				$Paragraph = $xaml.CreateElement("Paragraph")
+				$Paragraph = $Xaml.CreateElement("Paragraph")
 				[Void]$TableCell.AppendChild($Paragraph)
-				$Bold = $xaml.CreateElement("Bold")
+				$Bold = $Xaml.CreateElement("Bold")
 				[Void]$Paragraph.AppendChild($Bold)
 				$Bold.PSBase.InnerText = "パスワード"
 				[Void]$TableCell.AppendChild($Paragraph)
-				$TableCell = $xaml.CreateElement("TableCell")
+				$TableCell = $Xaml.CreateElement("TableCell")
 				[Void]$TableRow.AppendChild($TableCell)
 				$TableCell.SetAttribute("BorderBrush","DarkGray")
 				$TableCell.SetAttribute("BorderThickness","1")
 				$TableCell.SetAttribute("RowSpan","1")
 				$TableCell.SetAttribute("ColumnSpan","5")
-				$Paragraph = $xaml.CreateElement("Paragraph")
+				$Paragraph = $Xaml.CreateElement("Paragraph")
 				[Void]$TableCell.AppendChild($Paragraph)
-				$Bold = $xaml.CreateElement("Bold")
+				$Bold = $Xaml.CreateElement("Bold")
 				[Void]$Paragraph.AppendChild($Bold)
 				$Bold.PSBase.InnerText = "読み方"
 				foreach ($Input in $ListTable)
 				{
-					$TableRow = $xaml.CreateElement("TableRow")
+					$TableRow = $Xaml.CreateElement("TableRow")
 					[Void]$TableRowGroup.AppendChild($TableRow)
-					$TableCell = $xaml.CreateElement("TableCell")
+					$TableCell = $Xaml.CreateElement("TableCell")
 					[Void]$TableRow.AppendChild($TableCell)
 					$TableCell.SetAttribute("BorderBrush","DarkGray")
 					$TableCell.SetAttribute("BorderThickness","1")
 					$TableCell.SetAttribute("RowSpan","1")
 					$TableCell.SetAttribute("ColumnSpan","1")
-					$Paragraph = $xaml.CreateElement("Paragraph")
+					$Paragraph = $Xaml.CreateElement("Paragraph")
 					[Void]$TableCell.AppendChild($Paragraph)
 					$Paragraph.PSBase.InnerText = $Input.{No.}
-					$TableCell = $xaml.CreateElement("TableCell")
+					$TableCell = $Xaml.CreateElement("TableCell")
 					[Void]$TableRow.AppendChild($TableCell)
 					$TableCell.SetAttribute("BorderBrush","DarkGray")
 					$TableCell.SetAttribute("BorderThickness","1")
 					$TableCell.SetAttribute("RowSpan","1")
 					$TableCell.SetAttribute("ColumnSpan","2")
-					$Paragraph = $xaml.CreateElement("Paragraph")
+					$Paragraph = $Xaml.CreateElement("Paragraph")
 					[Void]$TableCell.AppendChild($Paragraph)
 					$Paragraph.PSBase.InnerText = $Input.{パスワード}
-					$TableCell = $xaml.CreateElement("TableCell")
+					$TableCell = $Xaml.CreateElement("TableCell")
 					[Void]$TableRow.AppendChild($TableCell)
 					$TableCell.SetAttribute("BorderBrush","DarkGray")
 					$TableCell.SetAttribute("BorderThickness","1")
 					$TableCell.SetAttribute("RowSpan","1")
 					$TableCell.SetAttribute("ColumnSpan","5")
-					$Paragraph = $xaml.CreateElement("Paragraph")
+					$Paragraph = $Xaml.CreateElement("Paragraph")
 					[Void]$TableCell.AppendChild($Paragraph)
 					$Paragraph.PSBase.InnerText = $Input.{読み方}
 				}
-				Add-Type -AssemblyName WindowsBase
-				Add-Type -AssemblyName PresentationCore
-				Add-Type -AssemblyName PresentationFramework
-				Add-Type -AssemblyName system.xaml
-				$HideWindow = [System.Windows.Markup.XamlReader]::Parse($xaml.OuterXML)
+				Add-Type -AssemblyName "WindowsBase"
+				Add-Type -AssemblyName "PresentationCore"
+				Add-Type -AssemblyName "PresentationFramework"
+				Add-Type -AssemblyName "system.xaml"
+				$HideWindow = [System.Windows.Markup.XamlReader]::Parse($Xaml.OuterXML)
 				$RichText = $HideWindow.FindName("RTB")
-				$textRange = New-Object System.Windows.Documents.TextRange($RichText.Document.ContentStart,$RichText.Document.ContentEnd)
-				$fileStream = new-object System.IO.FileStream $SaveDialog.FileNames[0],"Create"
-				$textRange.save($fileStream,[Windows.DataFormats]::Rtf)
-				$fileStream.Close()
+				$TextRange = New-Object System.Windows.Documents.TextRange($RichText.Document.ContentStart,$RichText.Document.ContentEnd)
+				$FileStream = New-Object System.IO.FileStream $SaveDialog.FileNames[0],"Create"
+				$TextRange.Save($FileStream,[Windows.DataFormats]::Rtf)
+				$FileStream.Close()
+			})
+			$RunJob.Invoke()
+		}
+		elseif ($SaveDialog.FilterIndex.Equals(7))
+		{
+			$Job.AddScript({
+				$Xaml = New-Object System.XML.XMLDocument
+				$Window = $Xaml.CreateElement('Window')
+				$Window.SetAttribute("xmlns","http://schemas.microsoft.com/winfx/2006/xaml/presentation")
+				$Window.SetAttribute("xmlns:x","http://schemas.microsoft.com/winfx/2006/xaml")
+				[Void]$Xaml.AppendChild($Window)
+				$RichTextBox = $Xaml.CreateElement("RichTextBox")
+				[Void]$Window.AppendChild($RichTextBox)
+				[Void]$StackPanel.AppendChild($RichTextBox)
+				$FlowDocument = $Xaml.CreateElement("FlowDocument")
+				[Void]$RichTextBox.AppendChild($FlowDocument)
+				$FlowDocument.SetAttribute("Name","FlowDoc")
+				$FlowDocument.SetAttribute("ColumnWidth","600")
+				$Table = $Xaml.CreateElement("Table")
+				[Void]$FlowDocument.AppendChild($Table)
+				$Table.SetAttribute("CellSpacing","0")
+				$Table.SetAttribute("BorderBrush","DarkGray")
+				$Table.SetAttribute("BorderThickness","1")
+				$TableColumns = $Xaml.CreateElement("Table.Columns")
+				[Void]$Table.AppendChild($TableColumns)
+				$TableColumn = $Xaml.CreateElement("TableColumn")
+				[Void]$TableColumns.AppendChild($TableColumn)
+				$TableColumn.SetAttribute("Width","40")
+				$TableColumn = $Xaml.CreateElement("TableColumn")
+				[Void]$TableColumns.AppendChild($TableColumn)
+				$TableColumn.SetAttribute("Width","100")
+				$TableColumn = $Xaml.CreateElement("TableColumn")
+				[Void]$TableColumns.AppendChild($TableColumn)
+				$TableColumn.SetAttribute("Width","100")
+				$TableRowGroup = $Xaml.CreateElement("TableRowGroup")
+				[Void]$Table.AppendChild($TableRowGroup)
+				$TableRow = $Xaml.CreateElement("TableRow")
+				[Void]$TableRowGroup.AppendChild($TableRow)
+				$TableRow.SetAttribute("Background","SkyBlue")
+				$TableCell = $Xaml.CreateElement("TableCell")
+				[Void]$TableRow.AppendChild($TableCell)
+				$TableCell.SetAttribute("BorderBrush","DarkGray")
+				$TableCell.SetAttribute("BorderThickness","1")
+				$TableCell.SetAttribute("RowSpan","1")
+				$TableCell.SetAttribute("ColumnSpan","1")
+				$Paragraph = $Xaml.CreateElement("Paragraph")
+				[Void]$TableCell.AppendChild($Paragraph)
+				$Bold = $Xaml.CreateElement("Bold")
+				[Void]$Paragraph.AppendChild($Bold)
+				$Bold.PSBase.InnerText = "No."
+				[Void]$TableCell.AppendChild($Paragraph)
+				$TableCell = $Xaml.CreateElement("TableCell")
+				[Void]$TableRow.AppendChild($TableCell)
+				$TableCell.SetAttribute("BorderBrush","DarkGray")
+				$TableCell.SetAttribute("BorderThickness","1")
+				$TableCell.SetAttribute("RowSpan","1")
+				$TableCell.SetAttribute("ColumnSpan","2")
+				$Paragraph = $Xaml.CreateElement("Paragraph")
+				[Void]$TableCell.AppendChild($Paragraph)
+				$Bold = $Xaml.CreateElement("Bold")
+				[Void]$Paragraph.AppendChild($Bold)
+				$Bold.PSBase.InnerText = "パスワード"
+				[Void]$TableCell.AppendChild($Paragraph)
+				$TableCell = $Xaml.CreateElement("TableCell")
+				[Void]$TableRow.AppendChild($TableCell)
+				$TableCell.SetAttribute("BorderBrush","DarkGray")
+				$TableCell.SetAttribute("BorderThickness","1")
+				$TableCell.SetAttribute("RowSpan","1")
+				$TableCell.SetAttribute("ColumnSpan","5")
+				$Paragraph = $Xaml.CreateElement("Paragraph")
+				[Void]$TableCell.AppendChild($Paragraph)
+				$Bold = $Xaml.CreateElement("Bold")
+				[Void]$Paragraph.AppendChild($Bold)
+				$Bold.PSBase.InnerText = "読み方"
+				foreach ($Input in $ListTable)
+				{
+					$TableRow = $Xaml.CreateElement("TableRow")
+					[Void]$TableRowGroup.AppendChild($TableRow)
+					$TableCell = $Xaml.CreateElement("TableCell")
+					[Void]$TableRow.AppendChild($TableCell)
+					$TableCell.SetAttribute("BorderBrush","DarkGray")
+					$TableCell.SetAttribute("BorderThickness","1")
+					$TableCell.SetAttribute("RowSpan","1")
+					$TableCell.SetAttribute("ColumnSpan","1")
+					$Paragraph = $Xaml.CreateElement("Paragraph")
+					[Void]$TableCell.AppendChild($Paragraph)
+					$Paragraph.PSBase.InnerText = $Input.{No.}
+					$TableCell = $Xaml.CreateElement("TableCell")
+					[Void]$TableRow.AppendChild($TableCell)
+					$TableCell.SetAttribute("BorderBrush","DarkGray")
+					$TableCell.SetAttribute("BorderThickness","1")
+					$TableCell.SetAttribute("RowSpan","1")
+					$TableCell.SetAttribute("ColumnSpan","2")
+					$Paragraph = $Xaml.CreateElement("Paragraph")
+					[Void]$TableCell.AppendChild($Paragraph)
+					$Paragraph.PSBase.InnerText = $Input.{パスワード}
+					$TableCell = $Xaml.CreateElement("TableCell")
+					[Void]$TableRow.AppendChild($TableCell)
+					$TableCell.SetAttribute("BorderBrush","DarkGray")
+					$TableCell.SetAttribute("BorderThickness","1")
+					$TableCell.SetAttribute("RowSpan","1")
+					$TableCell.SetAttribute("ColumnSpan","5")
+					$Paragraph = $Xaml.CreateElement("Paragraph")
+					[Void]$TableCell.AppendChild($Paragraph)
+					$Paragraph.PSBase.InnerText = $Input.{読み方}
+				}
+				Add-Type -AssemblyName "WindowsBase"
+				Add-Type -AssemblyName "PresentationCore"
+				Add-Type -AssemblyName "PresentationFramework"
+				Add-Type -AssemblyName "system.xaml"
+				Add-Type -Assembly "ReachFramework"
+				$HideWindow = [System.Windows.Markup.XamlReader]::Parse($Xaml.OuterXML)
+				$FlowDoc = $HideWindow.FindName("FlowDoc")
+				$TextRange = New-Object System.Windows.Documents.TextRange($FlowDoc.Document.ContentStart,$FlowDoc.Document.ContentEnd)
+				$XpsDocument = New-Object System.Windows.Xps.Packaging.XpsDocument($SaveDialog.FileNames[0], [System.IO.FileAccess]::ReadWrite)
+				$XpsDocumentWriter = [System.Windows.Xps.Packaging.XpsDocument]::CreateXpsDocumentWriter($XpsDocument)
+				$Source = $FlowDoc -as [System.Windows.Documents.IDocumentPaginatorSource]
+				$XpsDocumentWriter.Write($Source.DocumentPaginator)
+				$XpsDocument.Close()
 			})
 			$RunJob.Invoke()
 		}
