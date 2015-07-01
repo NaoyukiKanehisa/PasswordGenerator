@@ -485,7 +485,7 @@ $ListView1.Size = New-Object System.Drawing.Size(575,370)
 $ListView1.View = [System.Windows.Forms.View]::Details
 $ListView1.MultiSelect = $False
 $ListView1.LabelEdit = $False
-$ListView1.GridLines = $True
+$ListView1.GridLines = $False
 $ListView1.FullRowSelect = $True
 $ListView1.Font = "ＭＳ ゴシック,9"
 $ListView1.Add_ItemSelectionChanged({
@@ -927,13 +927,12 @@ $Button16.Add_Click({
 				Add-Type -AssemblyName "PresentationCore"
 				Add-Type -AssemblyName "PresentationFramework"
 				Add-Type -AssemblyName "system.xaml"
-				Add-Type -Assembly "ReachFramework"
+				Add-Type -AssemblyName "ReachFramework"
 				$HideWindow = [System.Windows.Markup.XamlReader]::Parse($Xaml.OuterXML)
 				$FlowDoc = $HideWindow.FindName("FlowDoc")
 				$XpsDocument = New-Object System.Windows.Xps.Packaging.XpsDocument($SaveDialog.FileNames[0], [System.IO.FileAccess]::ReadWrite)
 				$XpsDocumentWriter = [System.Windows.Xps.Packaging.XpsDocument]::CreateXpsDocumentWriter($XpsDocument)
-				$Source = $FlowDoc -as [System.Windows.Documents.IDocumentPaginatorSource]
-				$XpsDocumentWriter.Write($Source.DocumentPaginator)
+				$XpsDocumentWriter.Write($FlowDoc.DocumentPaginator)
 				$XpsDocument.Close()
 			})
 			$RunJob.Invoke()
