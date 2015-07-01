@@ -930,7 +930,6 @@ $Button16.Add_Click({
 				Add-Type -Assembly "ReachFramework"
 				$HideWindow = [System.Windows.Markup.XamlReader]::Parse($Xaml.OuterXML)
 				$FlowDoc = $HideWindow.FindName("FlowDoc")
-				$TextRange = New-Object System.Windows.Documents.TextRange($FlowDoc.Document.ContentStart,$FlowDoc.Document.ContentEnd)
 				$XpsDocument = New-Object System.Windows.Xps.Packaging.XpsDocument($SaveDialog.FileNames[0], [System.IO.FileAccess]::ReadWrite)
 				$XpsDocumentWriter = [System.Windows.Xps.Packaging.XpsDocument]::CreateXpsDocumentWriter($XpsDocument)
 				$Source = $FlowDoc -as [System.Windows.Documents.IDocumentPaginatorSource]
