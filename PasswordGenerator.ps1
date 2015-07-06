@@ -934,7 +934,7 @@ $Button16.Add_Click({
 				Add-Type -AssemblyName "ReachFramework"
 				$HideWindow = [System.Windows.Markup.XamlReader]::Parse($Xaml.OuterXML)
 				$FlowDoc = $HideWindow.FindName("FlowDoc")
-				$XpsDocument = New-Object System.Windows.Xps.Packaging.XpsDocument($SaveDialog.FileNames[0], [System.IO.FileAccess]::ReadWrite)
+				$XpsDocument = New-Object System.Windows.Xps.Packaging.XpsDocument($SaveDialog.FileNames[0],[System.IO.FileAccess]::ReadWrite)
 				$XpsDocumentWriter = [System.Windows.Xps.Packaging.XpsDocument]::CreateXpsDocumentWriter($XpsDocument)
 				$XpsDocumentWriter.Write($FlowDoc.DocumentPaginator)
 				$XpsDocument.Close()
@@ -1166,26 +1166,26 @@ function EditDialog($title,$text,$default,$pattern,$labelnumber)
 	$GroupBox2.Size = New-Object System.Drawing.Size(250,85)
 	$GroupBox2.Text = $title + "に使用する文字(&C)"
 
-	$TextBox2 = New-Object System.Windows.Forms.TextBox
-	$TextBox2.Location = New-Object System.Drawing.Size(10,20)
-	$TextBox2.Size = New-Object System.Drawing.Size(230,20)
-	$TextBox2.Font = "ＭＳ ゴシック,10"
-	$TextBox2.Text = $text
-	$TextBox2.Add_TextChanged({
-		if (([Regex]::Replace($TextBox2.Text,$pattern,"")).Equals("")) {$Button13.Enabled = $False} else {$Button13.Enabled = $True}
+	$TextBox3 = New-Object System.Windows.Forms.TextBox
+	$TextBox3.Location = New-Object System.Drawing.Size(10,20)
+	$TextBox3.Size = New-Object System.Drawing.Size(230,20)
+	$TextBox3.Font = "ＭＳ ゴシック,10"
+	$TextBox3.Text = $text
+	$TextBox3.Add_TextChanged({
+		if (([Regex]::Replace($TextBox3.Text,$pattern,"")).Equals("")) {$Button13.Enabled = $False} else {$Button13.Enabled = $True}
 	})
-	$TextBox2.Anchor = ([System.Windows.Forms.AnchorStyles]([System.Windows.Forms.AnchorStyles]::Top -bor [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left -bor [System.Windows.Forms.AnchorStyles]::Right))
-	$TextBox2.Add_keyDown({
-		if (($_.control.Equals($True)) -and ($_.KeyCode.Equals(([System.Windows.Forms.Keys]::A)))) {$TextBox2.SelectAll();$_.SuppressKeyPress = $True}
+	$TextBox3.Add_keyDown({
+		if (($_.control.Equals($True)) -and ($_.KeyCode.Equals(([System.Windows.Forms.Keys]::A)))) {$TextBox3.SelectAll();$_.SuppressKeyPress = $True}
 	})
-	$GroupBox2.Controls.Add($TextBox2)
+	$GroupBox2.Controls.Add($TextBox3)
 
 	$Button11 = New-Object System.Windows.Forms.Button
 	$Button11.Location = New-Object System.Drawing.Size(105,50)
 	$Button11.Size = New-Object System.Drawing.Size(65,20)
 	$Button11.Text = "消去(&D)"
 	$Button11.Add_Click({
-		$TextBox2.Text = ""
+		$TextBox3.Text = ""
+		$TextBox3.Focus()
 	})
 	$GroupBox2.Controls.Add($Button11)
 
@@ -1194,7 +1194,8 @@ function EditDialog($title,$text,$default,$pattern,$labelnumber)
 	$Button12.Size = New-Object System.Drawing.Size(65,20)
 	$Button12.Text = "初期値(&S)"
 	$Button12.Add_Click({
-		$TextBox2.Text = $default
+		$TextBox3.Text = $default
+		$TextBox3.Focus()
 	})
 	$GroupBox2.Controls.Add($Button12)
 
@@ -1203,7 +1204,7 @@ function EditDialog($title,$text,$default,$pattern,$labelnumber)
 	$Button13.Size = New-Object System.Drawing.Size(80,20)
 	$Button13.Text = "OK(&O)"
 	$Button13.Add_Click({
-		$strArr = @(($TextBox2.Text -creplace $pattern,"").GetEnumerator())
+		$strArr = @(($TextBox3.Text -creplace $pattern,"").GetEnumerator())
 		$str = (($strArr | Sort-Object -Unique) -Join "").Replace("&","&&")
 		switch ($labelnumber)
 		{
