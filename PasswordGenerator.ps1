@@ -1065,7 +1065,7 @@ $GroupBox4.Controls.Add($Label10)
 
 $Label11 = New-Object System.Windows.Forms.Label
 $Label11.Location = New-Object System.Drawing.Size(25,15)
-$Label11.Size = New-Object System.Drawing.Size(30,15)
+$Label11.Size = New-Object System.Drawing.Size(32,15)
 $Label11.TextAlign = "MiddleLeft"
 $Label11.BorderStyle = "Fixed3D"
 $GroupBox4.Controls.Add($Label11)
@@ -1079,7 +1079,7 @@ $GroupBox4.Controls.Add($Label12)
 
 $Label13 = New-Object System.Windows.Forms.Label
 $Label13.Location = New-Object System.Drawing.Size(25,30)
-$Label13.Size = New-Object System.Drawing.Size(30,15)
+$Label13.Size = New-Object System.Drawing.Size(32,15)
 $Label13.TextAlign = "MiddleLeft"
 $Label13.BorderStyle = "Fixed3D"
 $GroupBox4.Controls.Add($Label13)
@@ -1093,7 +1093,7 @@ $GroupBox4.Controls.Add($Label14)
 
 $Label15 = New-Object System.Windows.Forms.Label
 $Label15.Location = New-Object System.Drawing.Size(25,45)
-$Label15.Size = New-Object System.Drawing.Size(30,15)
+$Label15.Size = New-Object System.Drawing.Size(32,15)
 $Label15.TextAlign = "MiddleLeft"
 $Label15.BorderStyle = "Fixed3D"
 $GroupBox4.Controls.Add($Label15)
@@ -1107,7 +1107,7 @@ $GroupBox4.Controls.Add($Label16)
 
 $Label17 = New-Object System.Windows.Forms.Label
 $Label17.Location = New-Object System.Drawing.Size(25,60)
-$Label17.Size = New-Object System.Drawing.Size(30,15)
+$Label17.Size = New-Object System.Drawing.Size(32,15)
 $Label17.TextAlign = "MiddleLeft"
 $Label17.BorderStyle = "Fixed3D"
 $GroupBox4.Controls.Add($Label17)
@@ -1121,16 +1121,15 @@ $GroupBox4.Controls.Add($Label18)
 
 $Label19 = New-Object System.Windows.Forms.Label
 $Label19.Location = New-Object System.Drawing.Size(25,75)
-$Label19.Size = New-Object System.Drawing.Size(30,15)
+$Label19.Size = New-Object System.Drawing.Size(32,15)
 $Label19.TextAlign = "MiddleLeft"
 $Label19.BorderStyle = "Fixed3D"
 $GroupBox4.Controls.Add($Label19)
 
-$Label20 = New-Object System.Windows.Forms.Label
-$Label20.Location = New-Object System.Drawing.Size(5,92)
-$Label20.Size = New-Object System.Drawing.Size(50,1)
-$Label20.BorderStyle = "FixedSingle"
-$GroupBox4.Controls.Add($Label20)
+$GroupBox5 = New-Object System.Windows.Forms.GroupBox
+$GroupBox5.Location = New-Object System.Drawing.Size(5,92)
+$GroupBox5.Size = New-Object System.Drawing.Size(55,2)
+$GroupBox4.Controls.Add($GroupBox5)
 
 $Label21 = New-Object System.Windows.Forms.Label
 $Label21.Location = New-Object System.Drawing.Size(5,95)
@@ -1141,7 +1140,7 @@ $GroupBox4.Controls.Add($Label21)
 
 $Label22 = New-Object System.Windows.Forms.Label
 $Label22.Location = New-Object System.Drawing.Size(25,95)
-$Label22.Size = New-Object System.Drawing.Size(30,15)
+$Label22.Size = New-Object System.Drawing.Size(32,15)
 $Label22.TextAlign = "MiddleLeft"
 $Label22.BorderStyle = "Fixed3D"
 $GroupBox4.Controls.Add($Label22)
