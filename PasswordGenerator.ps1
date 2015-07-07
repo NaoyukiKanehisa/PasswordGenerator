@@ -212,10 +212,12 @@ $CheckBox6.Add_CheckedChanged({
 		$True {
 			$NumberBox2.Visible = $True
 			$Label6.Visible = $True
+			$NumberBox2.Focus()
 		}
 		$False {
 			$NumberBox2.Visible = $False
 			$Label6.Visible = $False
+			$NumberBox1.Focus()
 		}
 	}
 })
@@ -312,8 +314,11 @@ $Button6.Add_Click({
 	Invoke-Expression ($GenerateSettingsLoad1 -Join "`r`n")
 	$strChars = strcharscreate
 	$transcode = [Scriptblock]::Create((transcodegenerate))
-	$Form3.Add_Shown({$Form3.Activate()})
 	$Form3.ShowDialog()
+	[Void]$ListView1.Items.Clear()
+	$Button16.Enabled = $False
+	$Button17.Enabled = $False
+	$ContextMenu.Enabled = $False
 })
 $Form1.Controls.Add($Button6)
 
@@ -377,7 +382,6 @@ $Button15.Add_Click({
 		$Label9.TextAlign = "MiddleLeft"
 		$Form4.Controls.Add($Label9)
 	}
-	$Form4.Add_Shown({$Form4.Activate()})
 	[Void]$Form4.Show()
 
 	$SessionState = [System.Management.Automation.Runspaces.InitialSessionState]::CreateDefault()
@@ -567,7 +571,6 @@ $Button16.Add_Click({
 			$Label9.Size = New-Object System.Drawing.Size(220,20)
 			$Label9.TextAlign = "MiddleLeft"
 			$Form4.Controls.Add($Label9)
-			$Form4.Add_Shown({$Form4.Activate()})
 			[Void]$Form4.Show()
 			$SessionState = [System.Management.Automation.Runspaces.InitialSessionState]::CreateDefault()
 			$SessionState.Variables.Add((New-Object System.Management.Automation.Runspaces.SessionStateVariableEntry('Label9',$Label9,$null)))
@@ -585,7 +588,6 @@ $Button16.Add_Click({
 			}
 			$BackJob.Result.AsyncWaitHandle.WaitOne()
 			[Void]$Form4.Close()
-			$BackJob.Pipe.EndInvoke($BackJob.Result)
 			[System.Windows.Forms.Application]::DoEvents()
 		}
 		if ($SaveDialog.FilterIndex.Equals(1))
@@ -722,12 +724,8 @@ $Button16.Add_Click({
 				[Void]$RichTextBox.AppendChild($FlowDocument)
 				$Table = $Xaml.CreateElement("Table")
 				[Void]$FlowDocument.AppendChild($Table)
-				$FlowDocument.SetAttribute("ColumnWidth","600")
 				$Table = $Xaml.CreateElement("Table")
 				[Void]$FlowDocument.AppendChild($Table)
-				$Table.SetAttribute("CellSpacing","0")
-				$Table.SetAttribute("BorderBrush","DarkGray")
-				$Table.SetAttribute("BorderThickness","1")
 				$TableColumns = $Xaml.CreateElement("Table.Columns")
 				[Void]$Table.AppendChild($TableColumns)
 				$TableColumn = $Xaml.CreateElement("TableColumn")
@@ -984,10 +982,6 @@ $Button18.Text = "閉じる(&C)"
 $Button18.Anchor =([System.Windows.Forms.AnchorStyles]([System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Right))
 $Button18.Add_Click({
 	$Form3.Close()
-	[Void]$ListView1.Items.Clear()
-	$Button16.Enabled = $False
-	$Button17.Enabled = $False
-	$ContextMenu.Enabled = $False
 })
 $Form3.Controls.Add($Button18)
 
@@ -1226,7 +1220,7 @@ function EditDialog($title,$text,$default,$pattern,$labelnumber)
 	})
 	$Form2.Controls.Add($Button14)
 	$Form2.Controls.Add($GroupBox2)
-	$Form2.Add_Shown({$Form2.Activate()})
+	$Form2.ActiveControl = $TextBox3
 	$Form2.ShowDialog()
 	$Form2.Dispose()
 }
@@ -1424,7 +1418,7 @@ $appconfiginitial = {
 	Add-Type -AssemblyName System.Configuration
 	$Map = New-Object System.Configuration.ExeConfigurationFileMap
 	$Map.ExeConfigFilename = Join-Path $path "PasswordGenerator.config"
-	$Config = [System.Configuration.ConfigurationManager]::OpenMappedExeConfiguration($Map, [System.Configuration.ConfigurationUserLevel]::None)
+	$Config = [System.Configuration.ConfigurationManager]::OpenMappedExeConfiguration($Map,[System.Configuration.ConfigurationUserLevel]::None)
 
 	$cfg_chklower = $Config.AppSettings.Settings["chklower"]
 	$cfg_chkupper = $Config.AppSettings.Settings["chkupper"]
@@ -1470,7 +1464,6 @@ if ((Test-Path (Join-Path $path "PasswordGenerator.config")))
 	$SaveDialog.InitialDirectory = $cfg_savefilepath.Value
 }
 
-$Form1.Add_Shown({$Form1.Activate()})
 [Void]$Form1.ShowDialog()
 $Form3.Dispose()
 $Form1.Dispose()
