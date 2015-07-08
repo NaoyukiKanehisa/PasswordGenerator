@@ -354,6 +354,11 @@ $Button15.Size = New-Object System.Drawing.Size(60,20)
 $Button15.Text = "生成(&G)"
 $Button15.Add_Click({
 	if ($NumberBox3.Text -eq "") {$NumberBox3.Text = 1}
+	[Void]$ListView1.Items.Clear()
+	$Button15.Enabled = $False
+	$Button16.Enabled = $False
+	$Button17.Enabled = $False
+	$Button18.Enabled = $False
 	$Form4 = New-Object System.Windows.Forms.Form
 	$Form4.Size = New-Object System.Drawing.Size(300,100)
 	$Form4.FormBorderStyle = "FixedSingle"
@@ -421,11 +426,6 @@ $Button15.Add_Click({
 		Pipe = $Job
 		Result = $Job.BeginInvoke()
 	}
-	[Void]$ListView1.Items.Clear()
-	$Button15.Enabled = $False
-	$Button16.Enabled = $False
-	$Button17.Enabled = $False
-	$Button18.Enabled = $False
 	$BackJob.Result.AsyncWaitHandle.WaitOne()
 	$Global:ListTable = $BackJob.Pipe.EndInvoke($BackJob.Result)
 	for ($i = 0;$i -lt $NumberBox3.Text;$i ++)
@@ -590,6 +590,39 @@ $Button16.Add_Click({
 			[Void]$Form4.Close()
 			[System.Windows.Forms.Application]::DoEvents()
 		}
+		$Job.AddScript({
+			filter XamlAppend {
+				$TableRow = $Xaml.CreateElement("TableRow")
+				[Void]$TableRowGroup.AppendChild($TableRow)
+				$TableCell = $Xaml.CreateElement("TableCell")
+				[Void]$TableRow.AppendChild($TableCell)
+				$TableCell.SetAttribute("BorderBrush","DarkGray")
+				$TableCell.SetAttribute("BorderThickness","0.5")
+				$TableCell.SetAttribute("RowSpan","1")
+				$TableCell.SetAttribute("ColumnSpan","1")
+				$Paragraph = $Xaml.CreateElement("Paragraph")
+				[Void]$TableCell.AppendChild($Paragraph)
+				$Paragraph.PSBase.InnerText = $_.{No.}
+				$TableCell = $Xaml.CreateElement("TableCell")
+				[Void]$TableRow.AppendChild($TableCell)
+				$TableCell.SetAttribute("BorderBrush","DarkGray")
+				$TableCell.SetAttribute("BorderThickness","0.5")
+				$TableCell.SetAttribute("RowSpan","1")
+				$TableCell.SetAttribute("ColumnSpan","2")
+				$Paragraph = $Xaml.CreateElement("Paragraph")
+				[Void]$TableCell.AppendChild($Paragraph)
+				$Paragraph.PSBase.InnerText = $_.{パスワード}
+				$TableCell = $Xaml.CreateElement("TableCell")
+				[Void]$TableRow.AppendChild($TableCell)
+				$TableCell.SetAttribute("BorderBrush","DarkGray")
+				$TableCell.SetAttribute("BorderThickness","0.5")
+				$TableCell.SetAttribute("RowSpan","1")
+				$TableCell.SetAttribute("ColumnSpan","5")
+				$Paragraph = $Xaml.CreateElement("Paragraph")
+				[Void]$TableCell.AppendChild($Paragraph)
+				$Paragraph.PSBase.InnerText = $_.{読み方}
+			}
+		})
 		if ($SaveDialog.FilterIndex.Equals(1))
 		{
 			$Job.AddScript({
@@ -612,20 +645,20 @@ $Button16.Add_Click({
 				$Xml = New-Object System.XML.XMLDocument
 				$root = $Xml.CreateElement("Root")
 				[Void]$Xml.AppendChild($root)
-				filter XmlAppend {
+				foreach ($i in (0..($ListTable.count -1)))
+				{
 					$data = $Xml.CreateElement("Data")
 					[Void]$root.AppendChild($data)
 					$number = $Xml.CreateElement("No.")
-					$number.PSBase.InnerText = $_ + 1
+					$number.PSBase.InnerText = $i + 1
 					[Void]$data.AppendChild($number)
 					$pass = $Xml.CreateElement("パスワード")
-					$pass.PSBase.InnerText = $ListTable[$_].{パスワード}
+					$pass.PSBase.InnerText = $ListTable[$i].{パスワード}
 					[Void]$data.AppendChild($pass)
 					$read = $Xml.CreateElement("読み方")
-					$read.PSBase.InnerText = $ListTable[$_].{読み方}
+					$read.PSBase.InnerText = $ListTable[$i].{読み方}
 					[Void]$data.AppendChild($read)
 				}
-				0..($ListTable.count -1)| XmlAppend
 				$Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding($False)
 				$XmlWriter = New-Object System.Xml.XmlTextWriter($SaveDialog.FileNames[0],$Utf8NoBomEncoding)
 				$XmlWriter.Formatting = [System.Xml.Formatting]::Indented
@@ -638,8 +671,19 @@ $Button16.Add_Click({
 		{
 			$Job.AddScript({
 				Add-Type -Assembly System.ServiceModel.Web,System.Runtime.Serialization
-				function Create-Json
+				$Hash = New-Object object[] ($ListTable.count)
+				$i = 0
+				foreach ($Input in $ListTable)
 				{
+					$Hash[$i] = @{
+						"No." = $i + 1
+						"パスワード" = $Input.{パスワード}
+						"読み方" = $Input.{読み方}
+					}
+					$i ++
+				}
+				$Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding($False)
+				[System.IO.File]::WriteAllLines($SaveDialog.FileNames[0],($Hash | & {
 					param([Parameter(ValueFromPipeline=$True)]$Hash)
 					begin
 					{
@@ -675,20 +719,7 @@ $Button16.Add_Click({
 							$False {return $JsonArr}
 						}
 					}
-				}
-				$Hash = New-Object object[] ($ListTable.count)
-				$i = 0
-				foreach ($Input in $ListTable)
-				{
-					$Hash[$i] = @{
-						"No." = $i + 1
-						"パスワード" = $Input.{パスワード}
-						"読み方" = $Input.{読み方}
-					}
-					$i ++
-				}
-				$Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding($False)
-				[System.IO.File]::WriteAllLines($SaveDialog.FileNames[0],($Hash | Create-Json),$Utf8NoBomEncoding)
+				}),$Utf8NoBomEncoding)
 			})
 			$RunJob.Invoke()
 		}
@@ -777,38 +808,7 @@ $Button16.Add_Click({
 				$Bold = $Xaml.CreateElement("Bold")
 				[Void]$Paragraph.AppendChild($Bold)
 				$Bold.PSBase.InnerText = "読み方"
-				foreach ($Input in $ListTable)
-				{
-					$TableRow = $Xaml.CreateElement("TableRow")
-					[Void]$TableRowGroup.AppendChild($TableRow)
-					$TableCell = $Xaml.CreateElement("TableCell")
-					[Void]$TableRow.AppendChild($TableCell)
-					$TableCell.SetAttribute("BorderBrush","DarkGray")
-					$TableCell.SetAttribute("BorderThickness","1")
-					$TableCell.SetAttribute("RowSpan","1")
-					$TableCell.SetAttribute("ColumnSpan","1")
-					$Paragraph = $Xaml.CreateElement("Paragraph")
-					[Void]$TableCell.AppendChild($Paragraph)
-					$Paragraph.PSBase.InnerText = $Input.{No.}
-					$TableCell = $Xaml.CreateElement("TableCell")
-					[Void]$TableRow.AppendChild($TableCell)
-					$TableCell.SetAttribute("BorderBrush","DarkGray")
-					$TableCell.SetAttribute("BorderThickness","1")
-					$TableCell.SetAttribute("RowSpan","1")
-					$TableCell.SetAttribute("ColumnSpan","2")
-					$Paragraph = $Xaml.CreateElement("Paragraph")
-					[Void]$TableCell.AppendChild($Paragraph)
-					$Paragraph.PSBase.InnerText = $Input.{パスワード}
-					$TableCell = $Xaml.CreateElement("TableCell")
-					[Void]$TableRow.AppendChild($TableCell)
-					$TableCell.SetAttribute("BorderBrush","DarkGray")
-					$TableCell.SetAttribute("BorderThickness","1")
-					$TableCell.SetAttribute("RowSpan","1")
-					$TableCell.SetAttribute("ColumnSpan","5")
-					$Paragraph = $Xaml.CreateElement("Paragraph")
-					[Void]$TableCell.AppendChild($Paragraph)
-					$Paragraph.PSBase.InnerText = $Input.{読み方}
-				}
+				$ListTable | XamlAppend
 				Add-Type -AssemblyName "WindowsBase"
 				Add-Type -AssemblyName "PresentationCore"
 				Add-Type -AssemblyName "PresentationFramework"
@@ -893,38 +893,7 @@ $Button16.Add_Click({
 				$Bold = $Xaml.CreateElement("Bold")
 				[Void]$Paragraph.AppendChild($Bold)
 				$Bold.PSBase.InnerText = "読み方"
-				foreach ($Input in $ListTable)
-				{
-					$TableRow = $Xaml.CreateElement("TableRow")
-					[Void]$TableRowGroup.AppendChild($TableRow)
-					$TableCell = $Xaml.CreateElement("TableCell")
-					[Void]$TableRow.AppendChild($TableCell)
-					$TableCell.SetAttribute("BorderBrush","DarkGray")
-					$TableCell.SetAttribute("BorderThickness","0.5")
-					$TableCell.SetAttribute("RowSpan","1")
-					$TableCell.SetAttribute("ColumnSpan","1")
-					$Paragraph = $Xaml.CreateElement("Paragraph")
-					[Void]$TableCell.AppendChild($Paragraph)
-					$Paragraph.PSBase.InnerText = $Input.{No.}
-					$TableCell = $Xaml.CreateElement("TableCell")
-					[Void]$TableRow.AppendChild($TableCell)
-					$TableCell.SetAttribute("BorderBrush","DarkGray")
-					$TableCell.SetAttribute("BorderThickness","0.5")
-					$TableCell.SetAttribute("RowSpan","1")
-					$TableCell.SetAttribute("ColumnSpan","2")
-					$Paragraph = $Xaml.CreateElement("Paragraph")
-					[Void]$TableCell.AppendChild($Paragraph)
-					$Paragraph.PSBase.InnerText = $Input.{パスワード}
-					$TableCell = $Xaml.CreateElement("TableCell")
-					[Void]$TableRow.AppendChild($TableCell)
-					$TableCell.SetAttribute("BorderBrush","DarkGray")
-					$TableCell.SetAttribute("BorderThickness","0.5")
-					$TableCell.SetAttribute("RowSpan","1")
-					$TableCell.SetAttribute("ColumnSpan","5")
-					$Paragraph = $Xaml.CreateElement("Paragraph")
-					[Void]$TableCell.AppendChild($Paragraph)
-					$Paragraph.PSBase.InnerText = $Input.{読み方}
-				}
+				$ListTable | XamlAppend
 				Add-Type -AssemblyName "WindowsBase"
 				Add-Type -AssemblyName "PresentationCore"
 				Add-Type -AssemblyName "PresentationFramework"
@@ -939,7 +908,7 @@ $Button16.Add_Click({
 			})
 			$RunJob.Invoke()
 		}
-		else 
+		else
 		{
 			$Job.AddScript({
 				$strpassword = New-Object System.Collections.ArrayList
