@@ -556,8 +556,8 @@ $Button16.Add_Click({
 		$RunspacePool = [RunspaceFactory]::CreateRunspacePool(1,1,$SessionState,$Host)
 		$RunspacePool.ApartmentState = 'STA'
 		$RunspacePool.Open()
-		$Job = [PowerShell]::Create()
-		$Job.RunspacePool = $RunspacePool
+		$BackJob = [PowerShell]::Create()
+		$BackJob.RunspacePool = $RunspacePool
 		$RunJob = {
 			$Form4 = New-Object System.Windows.Forms.Form
 			$Form4.Size = New-Object System.Drawing.Size(300,100)
@@ -582,15 +582,11 @@ $Button16.Add_Click({
 				$Label9.Text = "ファイルを保存しています・・・"
 			})
 			($DrawJob.BeginInvoke()).AsyncWaitHandle.WaitOne()
-			$BackJob = New-Object PSObject -Property @{
-				Pipe = $Job
-				Result = $Job.BeginInvoke()
-			}
-			$BackJob.Result.AsyncWaitHandle.WaitOne()
+			($BackJob.BeginInvoke()).AsyncWaitHandle.WaitOne()
 			[Void]$Form4.Close()
 			[System.Windows.Forms.Application]::DoEvents()
 		}
-		$Job.AddScript({
+		$BackJob.AddScript({
 			filter XamlAppend {
 				$TableRow = $Xaml.CreateElement("TableRow")
 				[Void]$TableRowGroup.AppendChild($TableRow)
@@ -625,14 +621,14 @@ $Button16.Add_Click({
 		})
 		if ($SaveDialog.FilterIndex.Equals(1))
 		{
-			$Job.AddScript({
+			$BackJob.AddScript({
 				$ListTable | Select-Object "No.","パスワード","読み方" | Export-Csv -Encoding utf8 -NoTypeInformation -Path $SaveDialog.FileNames[0]
 			})
 			$RunJob.Invoke()
 		}
 		elseif ($SaveDialog.FilterIndex.Equals(2))
 		{
-			$Job.AddScript({
+			$BackJob.AddScript({
 				$content = $ListTable | Select-Object "No.","パスワード","読み方" | ConvertTo-CSV -NoTypeInformation
 				$Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding($False)
 				[System.IO.File]::WriteAllLines($SaveDialog.FileNames[0], $content, $Utf8NoBomEncoding)
@@ -641,7 +637,7 @@ $Button16.Add_Click({
 		}
 		elseif ($SaveDialog.FilterIndex.Equals(3))
 		{
-			$Job.AddScript({
+			$BackJob.AddScript({
 				$Xml = New-Object System.XML.XMLDocument
 				$root = $Xml.CreateElement("Root")
 				[Void]$Xml.AppendChild($root)
@@ -669,7 +665,7 @@ $Button16.Add_Click({
 		}
 		elseif ($SaveDialog.FilterIndex.Equals(4))
 		{
-			$Job.AddScript({
+			$BackJob.AddScript({
 				Add-Type -Assembly System.ServiceModel.Web,System.Runtime.Serialization
 				$Hash = New-Object object[] ($ListTable.count)
 				$i = 0
@@ -725,7 +721,7 @@ $Button16.Add_Click({
 		}
 		elseif ($SaveDialog.FilterIndex.Equals(5))
 		{
-			$Job.AddScript({
+			$BackJob.AddScript({
 				$head = New-Object System.Text.StringBuilder
 				[Void]$head.Append("<meta charset='utf-8'><title>パスワード一覧</title><style>")
 				[Void]$head.Append("BODY{font-family:ＭＳ ゴシック;background-color:#FFFFFF;}")
@@ -742,7 +738,7 @@ $Button16.Add_Click({
 		}
 		elseif ($SaveDialog.FilterIndex.Equals(6))
 		{
-			$Job.AddScript({
+			$BackJob.AddScript({
 				$Xaml = New-Object System.XML.XMLDocument
 				$Window = $Xaml.CreateElement('Window')
 				$Window.SetAttribute("xmlns","http://schemas.microsoft.com/winfx/2006/xaml/presentation")
@@ -824,7 +820,7 @@ $Button16.Add_Click({
 		}
 		elseif ($SaveDialog.FilterIndex.Equals(7) -And ($PSVersionTable.PSVersion.Major -ge 3))
 		{
-			$Job.AddScript({
+			$BackJob.AddScript({
 				$Xaml = New-Object System.XML.XMLDocument
 				$Window = $Xaml.CreateElement('Window')
 				$Window.SetAttribute("xmlns","http://schemas.microsoft.com/winfx/2006/xaml/presentation")
@@ -901,7 +897,7 @@ $Button16.Add_Click({
 				Add-Type -AssemblyName "ReachFramework"
 				$HideWindow = [System.Windows.Markup.XamlReader]::Parse($Xaml.OuterXML)
 				$FlowDoc = $HideWindow.FindName("FlowDoc")
-				$XpsDocument = New-Object System.Windows.Xps.Packaging.XpsDocument($SaveDialog.FileNames[0],[System.IO.FileAccess]::ReadWrite)
+				$XpsDocument = New-Object System.Windows.Xps.Packaging.XpsDocument($SaveDialog.FileNames[0],[System.IO.FileAccess]::Write)
 				$XpsDocumentWriter = [System.Windows.Xps.Packaging.XpsDocument]::CreateXpsDocumentWriter($XpsDocument)
 				$XpsDocumentWriter.Write($FlowDoc.DocumentPaginator)
 				$XpsDocument.Close()
@@ -910,7 +906,7 @@ $Button16.Add_Click({
 		}
 		else
 		{
-			$Job.AddScript({
+			$BackJob.AddScript({
 				$strpassword = New-Object System.Collections.ArrayList
 				0..($ListTable.count -1) | & {process{
 					[Void]$strpassword.Add($ListTable[$_].{パスワード})
