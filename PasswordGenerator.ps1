@@ -363,6 +363,7 @@ $Button15.Add_Click({
 	$Form4.Size = New-Object System.Drawing.Size(350,120)
 	$Form4.FormBorderStyle = "FixedSingle"
 	$Form4.TopMost = $True
+	$Form4.MaximizeBox = $False
 	$Form4.Text = "PasswordGenerator"
 	$Form4.ControlBox = $False
 	$Form4.StartPosition = "CenterScreen"
@@ -436,13 +437,13 @@ $Button15.Add_Click({
 						}
 						if ($RadioButton1.Checked)
 						{
-							$Form4.Text = ("パスワード生成中・・・(" + ($i + 1) + "/" + $NumberBox3.Text + ")")
+							$Form4.Text = ("パスワード生成中・・・(" + ($i + 1) + "/" + $ListTable.Count + ")")
 							$ProgressBar1.Value = $i + 1
 						}
 						else
 						{
-							$Form4.Text = ("パスワード生成中・・・(" + ($i + 1) + "/" + $NumberBox3.Text + ")")
-							$Label9.Text = [String][Math]::Round( ((($i + 1)/$NumberBox3.Text) * 100)) + "% 完了"
+							$Form4.Text = ("パスワード生成中・・・(" + ($i + 1) + "/" + $ListTable.Count + ")")
+							$Label9.Text = [String][Math]::Round(((($i + 1)/$ListTable.Count) * 100)) + "% 完了"
 						}
 					}
 				}
@@ -465,7 +466,7 @@ $Button15.Add_Click({
 	}
 	else
 	{
-		for ($i = 0;$i -lt $NumberBox3.Text;$i ++)
+		for ($i = 0;$i -lt $ListTable.Count;$i ++)
 		{
 			[Void]$ListView1.Items.Add(($i + 1))
 			[Void]$ListView1.Items[$i].SubItems.Add($ListTable[$i].{パスワード})
