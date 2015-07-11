@@ -360,7 +360,7 @@ $Button15.Add_Click({
 	$Button17.Enabled = $False
 	$Button18.Enabled = $False
 	$Form4 = New-Object System.Windows.Forms.Form
-	$Form4.Size = New-Object System.Drawing.Size(300,100)
+	$Form4.Size = New-Object System.Drawing.Size(350,120)
 	$Form4.FormBorderStyle = "FixedSingle"
 	$Form4.TopMost = $True
 	$Form4.Text = "PasswordGenerator"
@@ -370,8 +370,8 @@ $Button15.Add_Click({
 	{
 		$ProgressBar1 = New-Object System.Windows.Forms.ProgressBar
 		$progressBar1.DataBindings.DefaultDataSourceUpdateMode = 0
-		$ProgressBar1.Location = New-Object System.Drawing.Size(10,20)
-		$ProgressBar1.Size = New-Object System.Drawing.Size(265,20)
+		$ProgressBar1.Location = New-Object System.Drawing.Size(10,15)
+		$ProgressBar1.Size = New-Object System.Drawing.Size(315,20)
 		$ProgressBar1.Style = "Continuous"
 		$ProgressBar1.Minimum = 1
 		$ProgressBar1.Maximum = $NumberBox3.Text
@@ -381,16 +381,23 @@ $Button15.Add_Click({
 	else
 	{
 		$Label9 = New-Object System.Windows.Forms.Label
-		$Label9.Location = New-Object System.Drawing.Size(20,20)
+		$Label9.Location = New-Object System.Drawing.Size(20,15)
 		$Label9.Size = New-Object System.Drawing.Size(220,20)
-		$Label9.Text = "パスワード生成中・・・"
 		$Label9.TextAlign = "MiddleLeft"
 		$Form4.Controls.Add($Label9)
 	}
-	[Void]$Form4.Show()
+	$Button19 = New-Object System.Windows.Forms.Button
+	$Button19.Location = New-Object System.Drawing.Size(125,48)
+	$Button19.Size = New-Object System.Drawing.Size(80,20)
+	$Button19.Text = "キャンセル"
+	$env:Cancel = $False
+	$Button19.Add_Click({
+		$env:Cancel = $True
+	})
+	$Form4.Controls.Add($Button19)
 
 	$SessionState = [System.Management.Automation.Runspaces.InitialSessionState]::CreateDefault()
-	$EntryVariable = "ComboBox1","NumberBox1","NumberBox2","NumberBox3","Checkbox5","GenerateSettingsLoad2","strChars","transcode","strlengthmax","GetRandom","CheckBoxesCount","GenerateRandomString","GeneratePassword","eachpartchars","Form4","RadioButton1","ProgressBar1"
+	$EntryVariable = "ComboBox1","NumberBox1","NumberBox2","NumberBox3","Checkbox5","GenerateSettingsLoad2","strChars","transcode","strlengthmax","GetRandom","CheckBoxesCount","GenerateRandomString","GeneratePassword","eachpartchars","Form4","RadioButton1","Label9","ProgressBar1","Button19"
 	$SetVariableStr = New-Object System.Collections.Generic.List[System.String]
 	foreach ($i in $EntryVariable)
 	{
@@ -401,25 +408,47 @@ $Button15.Add_Click({
 	$RunspacePool = [RunspaceFactory]::CreateRunspacePool(1,2,$SessionState,$Host)
 	$RunspacePool.ApartmentState = 'STA'
 	$RunspacePool.Open()
+	$DrawJob = [PowerShell]::Create()
+	$DrawJob.AddScript({
+		[Void]$Form4.ShowDialog()
+	})
+	$DrawJob.RunspacePool = $RunspacePool
+	$DrawJob.BeginInvoke()
 	$Job = [PowerShell]::Create()
 	$Job.AddScript({
-		$ListTable = New-Object object[] ($NumberBox3.Text)
-		foreach ($i in (0..($NumberBox3.Text -1)))
+		:label1 while ($True)
 		{
-			Invoke-Expression ($GenerateSettingsLoad2 -Join "`r`n")
-			$password = & $GeneratePassword $Numberofdigits $EachCharCount $RandomCount
-			$ListTable[$i] = New-Object PSObject -Property @{
-				"No." = $i + 1
-				"パスワード" = $password
-				"読み方" = ([string]$transcode.Invoke()).Replace([char]0,",")
-			}
-			if ($RadioButton1.Checked)
+			$ListTable = New-Object object[] ($NumberBox3.Text)
+			foreach ($i in (0..($NumberBox3.Text -1)))
 			{
-				$Form4.Text = ("パスワード生成中・・・(" + ($i + 1) + "/" + $NumberBox3.Text + ")完了")
-				$ProgressBar1.Value = $i + 1
+				switch ($env:Cancel)
+				{
+					$True {
+						break label1
+					}
+					$False {
+						Invoke-Expression ($GenerateSettingsLoad2 -Join "`r`n")
+						$password = & $GeneratePassword $Numberofdigits $EachCharCount $RandomCount
+						$ListTable[$i] = New-Object PSObject -Property @{
+							"No." = $i + 1
+							"パスワード" = $password
+							"読み方" = ([string]$transcode.Invoke()).Replace([char]0,",")
+						}
+						if ($RadioButton1.Checked)
+						{
+							$Form4.Text = ("パスワード生成中・・・(" + ($i + 1) + "/" + $NumberBox3.Text + ")")
+							$ProgressBar1.Value = $i + 1
+						}
+						else
+						{
+							$Form4.Text = ("パスワード生成中・・・(" + ($i + 1) + "/" + $NumberBox3.Text + ")")
+							$Label9.Text = [String][Math]::Round( ((($i + 1)/$NumberBox3.Text) * 100)) + "% 完了"
+						}
+					}
+				}
 			}
+			return $ListTable
 		}
-		return $ListTable
 	})
 	$Job.RunspacePool = $RunspacePool
 	$BackJob = New-Object PSObject -Property @{
@@ -428,19 +457,27 @@ $Button15.Add_Click({
 	}
 	$BackJob.Result.AsyncWaitHandle.WaitOne()
 	$Global:ListTable = $BackJob.Pipe.EndInvoke($BackJob.Result)
-	for ($i = 0;$i -lt $NumberBox3.Text;$i ++)
-	{
-		[Void]$ListView1.Items.Add(($i + 1))
-		[Void]$ListView1.Items[$i].SubItems.Add($ListTable[$i].{パスワード})
-		[Void]$ListView1.Items[$i].SubItems.Add($ListTable[$i].{読み方})
-	}
-	$ListView1.AutoResizeColumns([Windows.Forms.ColumnHeaderAutoResizeStyle]::HeaderSize)
-	[Void]$Form4.Close()
 	[System.Windows.Forms.Application]::DoEvents()
-	$Button15.Enabled = $True
-	$Button16.Enabled = $True
-	$Button17.Enabled = $True
-	$Button18.Enabled = $True
+	if ([string]::IsNullOrEmpty($ListTable))
+	{
+		$Button15.Enabled = $True
+		$Button18.Enabled = $True
+	}
+	else
+	{
+		for ($i = 0;$i -lt $NumberBox3.Text;$i ++)
+		{
+			[Void]$ListView1.Items.Add(($i + 1))
+			[Void]$ListView1.Items[$i].SubItems.Add($ListTable[$i].{パスワード})
+			[Void]$ListView1.Items[$i].SubItems.Add($ListTable[$i].{読み方})
+		}
+		$ListView1.AutoResizeColumns([Windows.Forms.ColumnHeaderAutoResizeStyle]::HeaderSize)
+		$Button15.Enabled = $True
+		$Button16.Enabled = $True
+		$Button17.Enabled = $True
+		$Button18.Enabled = $True
+	}
+	[Void]$Form4.Close()
 })
 $Form3.Controls.Add($Button15)
 
@@ -560,7 +597,7 @@ $Button16.Add_Click({
 		$BackJob.RunspacePool = $RunspacePool
 		$RunJob = {
 			$Form4 = New-Object System.Windows.Forms.Form
-			$Form4.Size = New-Object System.Drawing.Size(300,100)
+			$Form4.Size = New-Object System.Drawing.Size(350,100)
 			$Form4.FormBorderStyle = "FixedSingle"
 			$Form4.TopMost = $True
 			$Form4.Text = "PasswordGenerator"
@@ -572,16 +609,8 @@ $Button16.Add_Click({
 			$Label9.TextAlign = "MiddleLeft"
 			$Form4.Controls.Add($Label9)
 			[Void]$Form4.Show()
-			$SessionState = [System.Management.Automation.Runspaces.InitialSessionState]::CreateDefault()
-			$SessionState.Variables.Add((New-Object System.Management.Automation.Runspaces.SessionStateVariableEntry('Label9',$Label9,$null)))
-			$RunspacePool = [RunspaceFactory]::CreateRunspacePool(1,1,$SessionState,$Host)
-			$RunspacePool.Open()
-			$DrawJob = [PowerShell]::Create()
-			$DrawJob.RunspacePool = $RunspacePool
-			$DrawJob.AddScript({
-				$Label9.Text = "ファイルを保存しています・・・"
-			})
-			($DrawJob.BeginInvoke()).AsyncWaitHandle.WaitOne()
+			$Label9.Text = "ファイルを保存しています・・・"
+			$Label9.Update()
 			($BackJob.BeginInvoke()).AsyncWaitHandle.WaitOne()
 			[Void]$Form4.Close()
 			[System.Windows.Forms.Application]::DoEvents()
