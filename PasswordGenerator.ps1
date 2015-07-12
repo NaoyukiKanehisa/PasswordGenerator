@@ -391,9 +391,9 @@ $Button15.Add_Click({
 	$Button19.Location = New-Object System.Drawing.Size(125,48)
 	$Button19.Size = New-Object System.Drawing.Size(80,20)
 	$Button19.Text = "キャンセル"
-	$env:Cancel = $False
+	$env:Continue = $True
 	$Button19.Add_Click({
-		$env:Cancel = $True
+		$env:Continue = $False
 	})
 	$Form4.Controls.Add($Button19)
 
@@ -417,37 +417,32 @@ $Button15.Add_Click({
 	$DrawJob.BeginInvoke()
 	$Job = [PowerShell]::Create()
 	$Job.AddScript({
-		:label1 while ($True)
+		$ListTable = New-Object object[] ($NumberBox3.Text)
+		$i = 0
+		do
 		{
-			$ListTable = New-Object object[] ($NumberBox3.Text)
-			foreach ($i in (0..($NumberBox3.Text -1)))
-			{
-				switch ($env:Cancel)
-				{
-					$True {
-						break label1
-					}
-					$False {
-						Invoke-Expression ($GenerateSettingsLoad2 -Join "`r`n")
-						$password = & $GeneratePassword $Numberofdigits $EachCharCount $RandomCount
-						$ListTable[$i] = New-Object PSObject -Property @{
-							"No." = $i + 1
-							"パスワード" = $password
-							"読み方" = ([string]$transcode.Invoke()).Replace([char]0,",")
-						}
-						if ($RadioButton1.Checked)
-						{
-							$Form4.Text = ("パスワード生成中・・・(" + ($i + 1) + "/" + $ListTable.Count + ")")
-							$ProgressBar1.Value = $i + 1
-						}
-						else
-						{
-							$Form4.Text = ("パスワード生成中・・・(" + ($i + 1) + "/" + $ListTable.Count + ")")
-							$Label9.Text = [String][Math]::Round(((($i + 1)/$ListTable.Count) * 100)) + "% 完了"
-						}
-					}
-				}
+			Invoke-Expression ($GenerateSettingsLoad2 -Join "`r`n")
+			$password = & $GeneratePassword $Numberofdigits $EachCharCount $RandomCount
+			$ListTable[$i] = New-Object PSObject -Property @{
+				"No." = $i + 1
+				"パスワード" = $password
+				"読み方" = ([string]$transcode.Invoke()).Replace([char]0,",")
 			}
+			if ($RadioButton1.Checked)
+			{
+				$Form4.Text = ("パスワード生成中・・・(" + ($i + 1) + "/" + $ListTable.Count + ")")
+				$ProgressBar1.Value = $i + 1
+			}
+			else
+			{
+				$Form4.Text = ("パスワード生成中・・・(" + ($i + 1) + "/" + $ListTable.Count + ")")
+				$Label9.Text = [String][Math]::Round(((($i + 1)/$ListTable.Count) * 100)) + "% 完了"
+			}
+			$i ++
+		}
+		while (($env:Continue -eq "True") -And ($i -lt $ListTable.Count))
+		if ($i -eq $ListTable.Count)
+		{
 			return $ListTable
 		}
 	})
@@ -457,15 +452,11 @@ $Button15.Add_Click({
 		Result = $Job.BeginInvoke()
 	}
 	$BackJob.Result.AsyncWaitHandle.WaitOne()
-	$Global:ListTable = $BackJob.Pipe.EndInvoke($BackJob.Result)
+	$Result = $BackJob.Pipe.EndInvoke($BackJob.Result)
 	[System.Windows.Forms.Application]::DoEvents()
-	if ([string]::IsNullOrEmpty($ListTable))
+	if ($Result -ne $null)
 	{
-		$Button15.Enabled = $True
-		$Button18.Enabled = $True
-	}
-	else
-	{
+		$Result | Set-Variable ListTable -Scope Global
 		for ($i = 0;$i -lt $ListTable.Count;$i ++)
 		{
 			[Void]$ListView1.Items.Add(($i + 1))
@@ -473,11 +464,11 @@ $Button15.Add_Click({
 			[Void]$ListView1.Items[$i].SubItems.Add($ListTable[$i].{読み方})
 		}
 		$ListView1.AutoResizeColumns([Windows.Forms.ColumnHeaderAutoResizeStyle]::HeaderSize)
-		$Button15.Enabled = $True
 		$Button16.Enabled = $True
 		$Button17.Enabled = $True
-		$Button18.Enabled = $True
 	}
+	$Button15.Enabled = $True
+	$Button18.Enabled = $True
 	[Void]$Form4.Close()
 })
 $Form3.Controls.Add($Button15)
