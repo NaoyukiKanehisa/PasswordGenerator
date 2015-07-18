@@ -289,7 +289,7 @@ $Button5.Add_Click({
 	Invoke-Expression ($GenerateSettingsLoad1 -Join "`r`n")
 	Invoke-Expression ($GenerateSettingsLoad2 -Join "`r`n")
 	$strChars = strcharscreate
-	$transcode = [ScriptBlock]::Create((transcodegenerate "single"))
+	$transcode = [ScriptBlock]::Create((transcodegenerate "Simple"))
 	$TextBox1.Text = $GeneratePassword.Invoke($Numberofdigits,$EachCharCount,$RandomCount)
 	$TextBox2.Text = ([string]$transcode.Invoke()).Replace([char]0,",")
 	$Button9.Enabled = $True
@@ -436,7 +436,7 @@ $Button15.Add_Click({
 				$Form4.Text = ("パスワード生成中・・・(" + ($i + 1) + "/" + $ListTable.Count + ")")
 				$Label9.Text = [String][Math]::Round(((($i + 1)/$ListTable.Count) * 100)) + "% 完了"
 			}
-			$i ++
+			[Void][System.Threading.Interlocked]::Increment([Ref]$i)
 		}
 		while (($Button19.DialogResult -ne "Cancel") -And ($i -lt $ListTable.Count))
 		if ($i -eq $ListTable.Count)
@@ -927,9 +927,10 @@ $Button16.Add_Click({
 		{
 			$BackJob.AddScript({
 				$strpassword = New-Object System.Collections.ArrayList
-				0..($ListTable.count -1) | & {process{
-					[Void]$strpassword.Add($ListTable[$_].{パスワード})
-				}}
+				foreach ($i in $ListTable)
+				{
+					[Void]$strpassword.Add($i.{パスワード})
+				}
 				$Writer = New-object System.IO.StreamWriter($SaveDialog.FileNames[0],$False,[Text.Encoding]::GetEncoding("Shift_JIS"))
 				$Writer.Write(($strpassword -Join "`r`n"))
 				$Writer.Close()
@@ -1333,7 +1334,7 @@ function transcodegenerate($type)
 	switch -Regex ($strChars) {"\s" {$codearray.Add('.ToString().Replace([String][Char]32,"スペース")')}}
 	switch ($type)
 	{
-		"single" {return ('return (' + ("(" * ($codearray.count -1)) + '[String]::Join([char]0,[char[]]$TextBox1.Text)' + [String]::Join(")",$codearray) + ")")}
+		"Simple" {return ('return (' + ("(" * ($codearray.count -1)) + '[String]::Join([char]0,[char[]]$TextBox1.Text)' + [String]::Join(")",$codearray) + ")")}
 		default {return ('return (' + ("(" * ($codearray.count -1)) + '[String]::Join([char]0,[char[]]$password)' + [String]::Join(")",$codearray) + ")")}
 	}
 }
