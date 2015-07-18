@@ -289,7 +289,7 @@ $Button5.Add_Click({
 	Invoke-Expression ($GenerateSettingsLoad1 -Join "`r`n")
 	Invoke-Expression ($GenerateSettingsLoad2 -Join "`r`n")
 	$strChars = strcharscreate
-	$transcode = [Scriptblock]::Create((transcodegenerate "single"))
+	$transcode = [ScriptBlock]::Create((transcodegenerate "single"))
 	$TextBox1.Text = $GeneratePassword.Invoke($Numberofdigits,$EachCharCount,$RandomCount)
 	$TextBox2.Text = ([string]$transcode.Invoke()).Replace([char]0,",")
 	$Button9.Enabled = $True
@@ -313,7 +313,7 @@ $Button6.Add_Click({
 	$CheckBoxesCount = checkboxescount
 	Invoke-Expression ($GenerateSettingsLoad1 -Join "`r`n")
 	$strChars = strcharscreate
-	$transcode = [Scriptblock]::Create((transcodegenerate))
+	$transcode = [ScriptBlock]::Create((transcodegenerate))
 	$Form3.ShowDialog()
 	[Void]$ListView1.Items.Clear()
 	$Button16.Enabled = $False
@@ -391,12 +391,16 @@ $Button15.Add_Click({
 	$Button19.Location = New-Object System.Drawing.Size(125,48)
 	$Button19.Size = New-Object System.Drawing.Size(80,20)
 	$Button19.Text = "キャンセル"
-	$env:Continue = $True
 	$Button19.Add_Click({
-		$env:Continue = $False
+		$Button19.DialogResult = "Cancel"
 	})
 	$Form4.Controls.Add($Button19)
 
+	$Runspace = [Management.Automation.Runspaces.RunspaceFactory]::CreateRunspace()
+	$Runspace.Open()
+	$Runspace.SessionStateProxy.SetVariable("Form4",$Form4)
+	$Pipeline = $Runspace.CreatePipeline({[Void]$Form4.ShowDialog()})
+	$Pipeline.InvokeAsync()
 	$SessionState = [System.Management.Automation.Runspaces.InitialSessionState]::CreateDefault()
 	$EntryVariable = "ComboBox1","NumberBox1","NumberBox2","NumberBox3","Checkbox5","GenerateSettingsLoad2","strChars","transcode","strlengthmax","GetRandom","CheckBoxesCount","GenerateRandomString","GeneratePassword","eachpartchars","Form4","RadioButton1","Label9","ProgressBar1","Button19"
 	$SetVariableStr = New-Object System.Collections.Generic.List[System.String]
@@ -404,20 +408,14 @@ $Button15.Add_Click({
 	{
 		$SetVariableStr.Add('$SessionState.Variables.Add((New-Object System.Management.Automation.Runspaces.SessionStateVariableEntry(''' + $i + ''',$' + $i + ',$null)))')
 	}
-	$SetVariable = [Scriptblock]::Create($SetVariableStr -Join ";")
+	$SetVariable = [ScriptBlock]::Create($SetVariableStr -Join ";")
 	$SetVariable.Invoke()
 	$RunspacePool = [RunspaceFactory]::CreateRunspacePool(1,2,$SessionState,$Host)
 	$RunspacePool.ApartmentState = 'STA'
 	$RunspacePool.Open()
-	$DrawJob = [PowerShell]::Create()
-	$DrawJob.AddScript({
-		[Void]$Form4.ShowDialog()
-	})
-	$DrawJob.RunspacePool = $RunspacePool
-	$DrawJob.BeginInvoke()
 	$Job = [PowerShell]::Create()
 	$Job.AddScript({
-		$ListTable = New-Object object[] ($NumberBox3.Text)
+		$ListTable = New-Object object[] $NumberBox3.Text
 		$i = 0
 		do
 		{
@@ -440,7 +438,7 @@ $Button15.Add_Click({
 			}
 			$i ++
 		}
-		while (($env:Continue -eq "True") -And ($i -lt $ListTable.Count))
+		while (($Button19.DialogResult -ne "Cancel") -And ($i -lt $ListTable.Count))
 		if ($i -eq $ListTable.Count)
 		{
 			return $ListTable
