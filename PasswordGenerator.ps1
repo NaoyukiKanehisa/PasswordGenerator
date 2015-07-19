@@ -318,7 +318,7 @@ $Button6.Add_Click({
 	[Void]$ListView1.Items.Clear()
 	$Button16.Enabled = $False
 	$Button17.Enabled = $False
-	$ContextMenu.Enabled = $False
+	$ContextMenu.Items.Clear()
 })
 $Form1.Controls.Add($Button6)
 
@@ -354,6 +354,7 @@ $Button15.Size = New-Object System.Drawing.Size(60,20)
 $Button15.Text = "生成(&G)"
 $Button15.Add_Click({
 	if ($NumberBox3.Text -eq "") {$NumberBox3.Text = 1}
+	$ContextMenu.Items.Clear()
 	[Void]$ListView1.Items.Clear()
 	$Button15.Enabled = $False
 	$Button16.Enabled = $False
@@ -522,8 +523,21 @@ $ListView1.Font = "ＭＳ ゴシック,9"
 $ListView1.Add_ItemSelectionChanged({
 	switch ($ListView1.SelectedIndices.Count)
 	{
-		0 {$ContextMenu.Enabled = $False}
-		1 {$ContextMenu.Enabled = $True}
+		0 {$ContextMenu.Items.Clear()}
+		1 {
+			$ContextMenuFile1 = New-Object System.Windows.Forms.ToolStripMenuItem
+			$ContextMenuFile1.Text = "パスワードをコピー"
+			$ContextMenuFile1.Add_Click({
+				$cp::SetText($ListView1.SelectedItems[0].SubItems[1].Text)
+			})
+			[Void]$ContextMenu.Items.Add($contextMenuFile1)
+			$ContextMenuFile2 = New-Object System.Windows.Forms.ToolStripMenuItem
+			$ContextMenuFile2.Text = "読み方をコピー"
+			$ContextMenuFile2.Add_Click({
+				$cp::SetText($ListView1.SelectedItems[0].SubItems[2].Text)
+			})
+			[Void]$ContextMenu.Items.Add($contextMenuFile2)
+		}
 	}
 })
 $ListView1.Anchor = ([System.Windows.Forms.AnchorStyles]([System.Windows.Forms.AnchorStyles]::Top -bor [System.Windows.Forms.AnchorStyles]::Bottom -bor [System.Windows.Forms.AnchorStyles]::Left -bor [System.Windows.Forms.AnchorStyles]::Right))
@@ -537,20 +551,7 @@ $LVcol3 = New-Object System.Windows.Forms.ColumnHeader
 $LVcol3.Text = "読み方"
 $LVcol3.Width = 400
 $ContextMenu = New-object System.Windows.Forms.ContextMenuStrip
-$ContextMenu.Enabled = $False
 $ListView1.ContextMenuStrip = $ContextMenu
-$ContextMenuFile1 = New-Object System.Windows.Forms.ToolStripMenuItem
-$ContextMenuFile1.Text = "パスワードをコピー"
-$ContextMenuFile1.Add_Click({
-	$cp::SetText($ListView1.SelectedItems[0].SubItems[1].Text)
-})
-[Void]$ContextMenu.Items.Add($contextMenuFile1)
-$ContextMenuFile2 = New-Object System.Windows.Forms.ToolStripMenuItem
-$ContextMenuFile2.Text = "読み方をコピー"
-$ContextMenuFile2.Add_Click({
-	$cp::SetText($ListView1.SelectedItems[0].SubItems[2].Text)
-})
-[Void]$ContextMenu.Items.Add($contextMenuFile2)
 $ListView1.Columns.AddRange([System.Windows.Forms.ColumnHeader[]](@($LVcol1, $LVcol2, $LVcol3)))
 $Form3.Controls.Add($ListView1)
 
@@ -956,7 +957,7 @@ $Button17.Add_Click({
 	[Void]$ListView1.Items.Clear()
 	$Button16.Enabled = $False
 	$Button17.Enabled = $False
-	$ContextMenu.Enabled = $False
+	$ContextMenu.Items.Clear()
 })
 $Form3.Controls.Add($Button17)
 
@@ -1111,10 +1112,11 @@ $Label19.TextAlign = "MiddleLeft"
 $Label19.BorderStyle = "Fixed3D"
 $GroupBox4.Controls.Add($Label19)
 
-$GroupBox5 = New-Object System.Windows.Forms.GroupBox
-$GroupBox5.Location = New-Object System.Drawing.Size(5,92)
-$GroupBox5.Size = New-Object System.Drawing.Size(55,2)
-$GroupBox4.Controls.Add($GroupBox5)
+$Label20 = New-Object System.Windows.Forms.Label
+$Label20.Location = New-Object System.Drawing.Size(5,92)
+$Label20.Size = New-Object System.Drawing.Size(55,2)
+$Label20.BorderStyle = "Fixed3D"
+$GroupBox4.Controls.Add($Label20)
 
 $Label21 = New-Object System.Windows.Forms.Label
 $Label21.Location = New-Object System.Drawing.Size(5,95)
