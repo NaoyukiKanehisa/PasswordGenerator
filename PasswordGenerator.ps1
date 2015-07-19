@@ -454,7 +454,7 @@ $Button15.Add_Click({
 	[System.Windows.Forms.Application]::DoEvents()
 	if ($Result -ne $null)
 	{
-		$Result | Set-Variable ListTable -Scope Global
+		$Global:ListTable = $Result
 		for ($i = 0;$i -lt $ListTable.Count;$i ++)
 		{
 			[Void]$ListView1.Items.Add(($i + 1))
