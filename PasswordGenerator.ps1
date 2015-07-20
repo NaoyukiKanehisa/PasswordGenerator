@@ -644,7 +644,6 @@ $Button16.Add_Click({
 			$BackJob.AddScript({
 				$ListTable | Select-Object "No.","パスワード","読み方" | Export-Csv -Encoding utf8 -NoTypeInformation -Path $SaveDialog.FileNames[0]
 			})
-			$RunJob.Invoke()
 		}
 		elseif ($SaveDialog.FilterIndex.Equals(2))
 		{
@@ -653,7 +652,6 @@ $Button16.Add_Click({
 				$Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding($False)
 				[System.IO.File]::WriteAllLines($SaveDialog.FileNames[0], $content, $Utf8NoBomEncoding)
 			})
-			$RunJob.Invoke()
 		}
 		elseif ($SaveDialog.FilterIndex.Equals(3))
 		{
@@ -681,7 +679,6 @@ $Button16.Add_Click({
 				$Xml.Save($XmlWriter)
 				$XmlWriter.Close()
 			})
-			$RunJob.Invoke()
 		}
 		elseif ($SaveDialog.FilterIndex.Equals(4))
 		{
@@ -737,7 +734,6 @@ $Button16.Add_Click({
 					}
 				}),$Utf8NoBomEncoding)
 			})
-			$RunJob.Invoke()
 		}
 		elseif ($SaveDialog.FilterIndex.Equals(5))
 		{
@@ -754,7 +750,6 @@ $Button16.Add_Click({
 				$content = $content[0..7] + (($content[8..($content.count -1)]) -replace ' ','&nbsp;')
 				[System.IO.File]::WriteAllLines($SaveDialog.FileNames[0], $content, $Utf8NoBomEncoding)
 			})
-			$RunJob.Invoke()
 		}
 		elseif ($SaveDialog.FilterIndex.Equals(6))
 		{
@@ -836,7 +831,6 @@ $Button16.Add_Click({
 				$TextRange.Save($FileStream,[Windows.DataFormats]::Rtf)
 				$FileStream.Close()
 			})
-			$RunJob.Invoke()
 		}
 		elseif ($SaveDialog.FilterIndex.Equals(7) -And ($PSVersionTable.PSVersion.Major -ge 3))
 		{
@@ -922,7 +916,6 @@ $Button16.Add_Click({
 				$XpsDocumentWriter.Write($FlowDoc.DocumentPaginator)
 				$XpsDocument.Close()
 			})
-			$RunJob.Invoke()
 		}
 		else
 		{
@@ -936,8 +929,8 @@ $Button16.Add_Click({
 				$Writer.Write(($strpassword -Join "`r`n"))
 				$Writer.Close()
 			})
-			$RunJob.Invoke()
 		}
+		$RunJob.Invoke()
 		$Button15.Enabled = $True
 		$Button16.Enabled = $True
 		$Button17.Enabled = $True
