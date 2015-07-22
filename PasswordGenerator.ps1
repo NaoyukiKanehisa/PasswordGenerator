@@ -435,7 +435,7 @@ $Button15.Add_Click({
 			else
 			{
 				$Form4.Text = ("パスワード生成中・・・(" + ($i + 1) + "/" + $ListTable.Count + ")")
-				$Label9.Text = [String][Math]::Round(((($i + 1)/$ListTable.Count) * 100)) + "% 完了"
+				$Label9.Text = [String][Math]::Floor(((($i + 1)/$ListTable.Count) * 100)) + "% 完了"
 			}
 			[Void][System.Threading.Interlocked]::Increment([Ref]$i)
 		}
@@ -451,11 +451,10 @@ $Button15.Add_Click({
 		Result = $Job.BeginInvoke()
 	}
 	$BackJob.Result.AsyncWaitHandle.WaitOne()
-	$Result = $BackJob.Pipe.EndInvoke($BackJob.Result)
+	$Global:ListTable = $BackJob.Pipe.EndInvoke($BackJob.Result)
 	[System.Windows.Forms.Application]::DoEvents()
-	if ($Result -ne $null)
+	if ($ListTable -ne $null)
 	{
-		$Global:ListTable = $Result
 		for ($i = 0;$i -lt $ListTable.Count;$i ++)
 		{
 			[Void]$ListView1.Items.Add(($i + 1))
@@ -659,18 +658,18 @@ $Button16.Add_Click({
 				$Xml = New-Object System.XML.XMLDocument
 				$root = $Xml.CreateElement("Root")
 				[Void]$Xml.AppendChild($root)
-				foreach ($i in (0..($ListTable.count -1)))
+				foreach ($i in $ListTable)
 				{
 					$data = $Xml.CreateElement("Data")
 					[Void]$root.AppendChild($data)
 					$number = $Xml.CreateElement("No.")
-					$number.PSBase.InnerText = $i + 1
+					$number.PSBase.InnerText = $i.{No.}
 					[Void]$data.AppendChild($number)
 					$pass = $Xml.CreateElement("パスワード")
-					$pass.PSBase.InnerText = $ListTable[$i].{パスワード}
+					$pass.PSBase.InnerText = $i.{パスワード}
 					[Void]$data.AppendChild($pass)
 					$read = $Xml.CreateElement("読み方")
-					$read.PSBase.InnerText = $ListTable[$i].{読み方}
+					$read.PSBase.InnerText = $i.{読み方}
 					[Void]$data.AppendChild($read)
 				}
 				$Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding($False)
@@ -684,7 +683,7 @@ $Button16.Add_Click({
 		{
 			$BackJob.AddScript({
 				Add-Type -Assembly System.ServiceModel.Web,System.Runtime.Serialization
-				$Hash = New-Object object[] ($ListTable.count)
+				$Hash = New-Object object[] $ListTable.count
 				$i = 0
 				foreach ($Input in $ListTable)
 				{
