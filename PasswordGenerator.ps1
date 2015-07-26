@@ -822,9 +822,9 @@ $Button16.Add_Click({
 					$Paragraph.PSBase.InnerText = $i.{読み方}
 				}
 				Add-Type -AssemblyName "WindowsBase","PresentationCore","PresentationFramework","system.xaml"
+				$HideWindow = [System.Windows.Markup.XamlReader]::Parse($Xaml.OuterXML)
 				if ($SaveDialog.FilterIndex.Equals(6))
 				{
-					$HideWindow = [System.Windows.Markup.XamlReader]::Parse($Xaml.OuterXML)
 					$RichText = $HideWindow.FindName("RTB")
 					$TextRange = New-Object System.Windows.Documents.TextRange($RichText.Document.ContentStart,$RichText.Document.ContentEnd)
 					$FileStream = New-Object System.IO.FileStream $SaveDialog.FileNames[0],"Create"
@@ -834,7 +834,6 @@ $Button16.Add_Click({
 				else
 				{
 					Add-Type -AssemblyName "ReachFramework"
-					$HideWindow = [System.Windows.Markup.XamlReader]::Parse($Xaml.OuterXML)
 					$FlowDoc = $HideWindow.FindName("FlowDoc")
 					$XpsDocument = New-Object System.Windows.Xps.Packaging.XpsDocument($SaveDialog.FileNames[0],[System.IO.FileAccess]::Write)
 					$XpsDocumentWriter = [System.Windows.Xps.Packaging.XpsDocument]::CreateXpsDocumentWriter($XpsDocument)
