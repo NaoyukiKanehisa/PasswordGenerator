@@ -626,7 +626,7 @@ $Button16.Add_Click({
 					$data = $Xml.CreateElement("Data")
 					[Void]$root.AppendChild($data)
 					$number = $Xml.CreateElement("No.")
-					$number.PSBase.InnerText = $i + 1
+					$number.PSBase.InnerText = $i.{No.}
 					[Void]$data.AppendChild($number)
 					$pass = $Xml.CreateElement("パスワード")
 					$pass.PSBase.InnerText = $i.{パスワード}
