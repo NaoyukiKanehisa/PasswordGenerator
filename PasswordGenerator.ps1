@@ -427,15 +427,11 @@ $Button15.Add_Click({
 				"パスワード" = $password
 				"読み方" = ([string]$transcode.Invoke()).Replace([char]0,",")
 			}
-			if ($RadioButton1.Checked)
+			$Form4.Text = ("パスワード生成中・・・(" + ($i + 1) + "/" + $ListTable.Count + ")")
+			switch ($RadioButton1.Checked)
 			{
-				$Form4.Text = ("パスワード生成中・・・(" + ($i + 1) + "/" + $ListTable.Count + ")")
-				$ProgressBar1.Value = $i + 1
-			}
-			else
-			{
-				$Form4.Text = ("パスワード生成中・・・(" + ($i + 1) + "/" + $ListTable.Count + ")")
-				$Label9.Text = [String][Math]::Floor(((($i + 1)/$ListTable.Count) * 100)) + "% 完了"
+				$True {$ProgressBar1.Value = $i + 1}
+				$False {$Label9.Text = [String][Math]::Floor(((($i + 1)/$ListTable.Count) * 100)) + "% 完了"}
 			}
 			[Void][System.Threading.Interlocked]::Increment([Ref]$i)
 		}
