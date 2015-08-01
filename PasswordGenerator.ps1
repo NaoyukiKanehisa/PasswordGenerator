@@ -5,21 +5,19 @@
   ランダムなパスワードを生成し、CSVファイルの他、様々な形式でデータを保存できます。
   対応形式：  CSV、HTML、XML、JSON、RTF、XPS、TXT (※XPSはPowerShell 3.0以降のみ対応)
 #>
-$MsgBox = {
-	param($str,$title,$icon)
-	[Void][System.Windows.Forms.MessageBox]::Show($str,$title,"OK",$icon)
-}
 
 [Void][System.Reflection.Assembly]::LoadWithPartialName("System.Drawing")
 [Void][System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
 
-if ([string]::IsNullOrEmpty($myInvocation.MyCommand.path))
+$cp = [Windows.Forms.Clipboard]
+
+if ([string]::IsNullOrEmpty($myInvocation.MyCommand.Path))
 {
 	$path = (Get-Location).Path
 }
 else
 {
-	$path = Split-Path $myInvocation.MyCommand.path
+	$path = Split-Path $myInvocation.MyCommand.Path
 }
 
 if ($Host.Runspace.ApartmentState -ne "STA")
@@ -28,7 +26,9 @@ if ($Host.Runspace.ApartmentState -ne "STA")
 	exit
 }
 
-$cp = [Windows.Forms.Clipboard]
+$MsgBox = {
+	[Void][System.Windows.Forms.MessageBox]::Show($args[0],$args[1],"OK",$args[2])
+}
 
 $Form1 = New-Object System.Windows.Forms.Form
 $Form1.Size = New-Object System.Drawing.Size(610,390)
@@ -49,7 +49,7 @@ $CheckBox1.Size = New-Object System.Drawing.Size(110,20)
 $CheckBox1.Checked = $True
 $CheckBox1.Text = "英字小文字(&L)"
 $CheckBox1.Add_CheckedChanged({
-	if ($ComboBox1.SelectedIndex.Equals(0) -Or $ComboBox1.SelectedIndex.Equals(1)) {$NumberBox1.Minimum = checkboxescount}
+	if ($ComboBox1.SelectedIndex.Equals(0) -Or $ComboBox1.SelectedIndex.Equals(1)) {$NumberBox1.Minimum = countCheck}
 	if (($CheckBox2.Checked.Equals($False)) -And($CheckBox3.Checked.Equals($False)) -And($CheckBox4.Checked.Equals($False))) {$CheckBox1.Checked = $True}
 })
 $GroupBox1.Controls.Add($CheckBox1)
@@ -78,7 +78,7 @@ $CheckBox2.Size = New-Object System.Drawing.Size(110,20)
 $CheckBox2.Checked = $True
 $CheckBox2.Text = "英字大文字(&U)"
 $CheckBox2.Add_CheckedChanged({
-	if ($ComboBox1.SelectedIndex.Equals(0) -Or $ComboBox1.SelectedIndex.Equals(1)) {$NumberBox1.Minimum = checkboxescount}
+	if ($ComboBox1.SelectedIndex.Equals(0) -Or $ComboBox1.SelectedIndex.Equals(1)) {$NumberBox1.Minimum = countCheck}
 	if (($CheckBox1.Checked.Equals($False)) -And($CheckBox3.Checked.Equals($False)) -And($CheckBox4.Checked.Equals($False))) {$CheckBox2.Checked = $True}
 })
 $GroupBox1.Controls.Add($CheckBox2)
@@ -107,7 +107,7 @@ $CheckBox3.Size = New-Object System.Drawing.Size(110,20)
 $CheckBox3.Checked = $True
 $CheckBox3.Text = "数字(&N)"
 $CheckBox3.Add_CheckedChanged({
-	if ($ComboBox1.SelectedIndex.Equals(0) -Or $ComboBox1.SelectedIndex.Equals(1)) {$NumberBox1.Minimum = checkboxescount}
+	if ($ComboBox1.SelectedIndex.Equals(0) -Or $ComboBox1.SelectedIndex.Equals(1)) {$NumberBox1.Minimum = countCheck}
 	if (($CheckBox1.Checked.Equals($False)) -And($CheckBox2.Checked.Equals($False)) -And($CheckBox4.Checked.Equals($False))) {$CheckBox3.Checked = $True}
 })
 $GroupBox1.Controls.Add($CheckBox3)
@@ -136,7 +136,7 @@ $CheckBox4.Size = New-Object System.Drawing.Size(110,20)
 $CheckBox4.Checked = $True
 $CheckBox4.Text = "記号(&M)"
 $CheckBox4.Add_CheckedChanged({
-	if ($ComboBox1.SelectedIndex.Equals(0) -Or $ComboBox1.SelectedIndex.Equals(1)) {$NumberBox1.Minimum = checkboxescount}
+	if ($ComboBox1.SelectedIndex.Equals(0) -Or $ComboBox1.SelectedIndex.Equals(1)) {$NumberBox1.Minimum = countCheck}
 	if (($CheckBox1.Checked.Equals($False)) -And($CheckBox2.Checked.Equals($False)) -And($CheckBox3.Checked.Equals($False))) {$CheckBox4.Checked = $True}
 })
 $GroupBox1.Controls.Add($CheckBox4)
@@ -164,7 +164,7 @@ $CheckBox5.Location = New-Object System.Drawing.Size(10,95)
 $CheckBox5.Size = New-Object System.Drawing.Size(100,20)
 $CheckBox5.Text = "スペース(&S)"
 $CheckBox5.Add_CheckedChanged({
-	if ($ComboBox1.SelectedIndex.Equals(0) -Or $ComboBox1.SelectedIndex.Equals(1)) {$NumberBox1.Minimum = checkboxescount}
+	if ($ComboBox1.SelectedIndex.Equals(0) -Or $ComboBox1.SelectedIndex.Equals(1)) {$NumberBox1.Minimum = countCheck}
 })
 $GroupBox1.Controls.Add($CheckBox5)
 
@@ -234,63 +234,63 @@ $GenerateSettingsLoad1 = @'
 	$strSign = $Label4.Text.Replace("&&","&")
 	switch ($CheckBox6.Checked)
 	{
-		$True {$strlengthmax = $NumberBox2.Text}
-		$False {$strlengthmax = $NumberBox1.Text}
+		$True {$strLengthMax = $NumberBox2.Text}
+		$False {$strLengthMax = $NumberBox1.Text}
 	}
 '@
 $GenerateSettingsLoad2 = @'
-	$Numberofdigits = Get-Random -input ($NumberBox1.Text..$strlengthmax)
+	$numberOfDigits = Get-Random -input ($NumberBox1.Text..$strLengthMax)
 	if ($ComboBox1.SelectedIndex.Equals(0))
 	{
 		$EachCharCount = 1
-		if ($CheckBoxesCount -ne $Numberofdigits)
+		if ($CheckesCount -ne $numberOfDigits)
 		{
-			$RandomCount = $Numberofdigits - $CheckBoxesCount
+			$RandomCount = $numberOfDigits - $CheckesCount
 		}
 	}
 	elseif ($ComboBox1.SelectedIndex.Equals(1))
 	{
 		if ($CheckBox5.Checked)
 		{
-			if ((($Numberofdigits - $CheckBoxesCount) % ($CheckBoxesCount -1)) -eq 0)
+			if ((($numberOfDigits - $CheckesCount) % ($CheckesCount -1)) -eq 0)
 			{
-				$EachCharCount = ($Numberofdigits - $CheckBoxesCount) / ($CheckBoxesCount -1) + 1
+				$EachCharCount = ($numberOfDigits - $CheckesCount) / ($CheckesCount -1) + 1
 				$RandomCount = 0
 			}
 			else
 			{
-				$EachCharCount = [Math]::Floor(($Numberofdigits - $CheckBoxesCount) / ($CheckBoxesCount -1)) + 1
-				$RandomCount = ($Numberofdigits - $CheckBoxesCount) % ($CheckBoxesCount -1)
+				$EachCharCount = [Math]::Floor(($numberOfDigits - $CheckesCount) / ($CheckesCount -1)) + 1
+				$RandomCount = ($numberOfDigits - $CheckesCount) % ($CheckesCount -1)
 			}
 		}
 		else
 		{
-			$EachCharCount = [Math]::Floor(($Numberofdigits - $CheckBoxesCount) / ($CheckBoxesCount)) + 1
-			if ((($Numberofdigits - $CheckBoxesCount) % ($CheckBoxesCount)) -eq 0)
+			$EachCharCount = [Math]::Floor(($numberOfDigits - $CheckesCount) / ($CheckesCount)) + 1
+			if ((($numberOfDigits - $CheckesCount) % ($CheckesCount)) -eq 0)
 			{
 				$RandomCount = 0
 			}
 			else
 			{
-				$RandomCount = ($Numberofdigits - $CheckBoxesCount) % ($CheckBoxesCount)
+				$RandomCount = ($numberOfDigits - $CheckesCount) % ($CheckesCount)
 			}
 		}
 	}
 	else
 	{
-		$RandomCount = $Numberofdigits
+		$RandomCount = $numberOfDigits
 	}
 '@
 
 $Button5.Add_Click({
 	if ($NumberBox1.Text -eq "") {$NumberBox1.Text = $NumberBox1.Minimum}
 	if ($NumberBox2.Text -eq "") {$NumberBox2.Text = $NumberBox1.Text}
-	$CheckBoxesCount = checkboxescount
+	$CheckesCount = countCheck
 	Invoke-Expression ($GenerateSettingsLoad1 -Join "`r`n")
 	Invoke-Expression ($GenerateSettingsLoad2 -Join "`r`n")
-	$strChars = strcharscreate
-	$transcode = [ScriptBlock]::Create((transcodegenerate "Simple"))
-	$TextBox1.Text = $GeneratePassword.Invoke($Numberofdigits,$EachCharCount,$RandomCount)
+	$strChars = createStrChars
+	$transcode = [ScriptBlock]::Create((generateTransCode "Simple"))
+	$TextBox1.Text = $GeneratePassword.Invoke($numberOfDigits,$EachCharCount,$RandomCount)
 	$TextBox2.Text = ([string]$transcode.Invoke()).Replace([char]0,",")
 	$Button9.Enabled = $True
 	$Button10.Enabled = $True
@@ -310,10 +310,10 @@ $Button6.Text = "複数生成(&D)"
 $Button6.Add_Click({
 	if ($NumberBox1.Text -eq "") {$NumberBox1.Text = $NumberBox1.Minimum}
 	if ($NumberBox2.Text -eq "") {$NumberBox2.Text = $NumberBox1.Text}
-	$CheckBoxesCount = checkboxescount
+	$CheckesCount = countCheck
 	Invoke-Expression ($GenerateSettingsLoad1 -Join "`r`n")
-	$strChars = strcharscreate
-	$transcode = [ScriptBlock]::Create((transcodegenerate))
+	$strChars = createStrChars
+	$transcode = [ScriptBlock]::Create((generateTransCode))
 	$Form3.ShowDialog()
 	[Void]$ListView1.Items.Clear()
 	$Button16.Enabled = $False
@@ -327,7 +327,7 @@ $Button7.Location = New-Object System.Drawing.Size(495,75)
 $Button7.Size = New-Object System.Drawing.Size(85,30)
 $Button7.Text = "設定保存(&P)"
 $Button7.Add_Click({
-	appconfig
+	appConfig
 })
 $Form1.Controls.Add($Button7)
 
@@ -403,7 +403,7 @@ $Button15.Add_Click({
 	$Pipeline = $Runspace.CreatePipeline({[Void]$Form4.ShowDialog()})
 	$Pipeline.InvokeAsync()
 	$SessionState = [System.Management.Automation.Runspaces.InitialSessionState]::CreateDefault()
-	$EntryVariable = "ComboBox1","NumberBox1","NumberBox2","NumberBox3","Checkbox5","GenerateSettingsLoad2","strChars","transcode","strlengthmax","GetRandom","CheckBoxesCount","GenerateRandomString","GeneratePassword","eachpartchars","Form4","RadioButton1","Label9","ProgressBar1","Button19"
+	$EntryVariable = "ComboBox1","NumberBox1","NumberBox2","NumberBox3","Checkbox5","GenerateSettingsLoad2","strChars","transCode","strLengthMax","GetRandom","countCheck","GenerateRandomString","GeneratePassword","Form4","RadioButton1","Label9","ProgressBar1","Button19"
 	$SetVariableStr = New-Object System.Collections.Generic.List[System.String]
 	foreach ($i in $EntryVariable)
 	{
@@ -421,7 +421,7 @@ $Button15.Add_Click({
 		do
 		{
 			Invoke-Expression ($GenerateSettingsLoad2 -Join "`r`n")
-			$password = & $GeneratePassword $Numberofdigits $EachCharCount $RandomCount
+			$password = & $GeneratePassword $numberOfDigits $EachCharCount $RandomCount
 			$ListTable[$i] = New-Object PSObject -Property @{
 				"No." = $i + 1
 				"パスワード" = $password
@@ -841,13 +841,13 @@ $Button16.Add_Click({
 		else
 		{
 			$BackJob.AddScript({
-				$strpassword = New-Object System.Collections.ArrayList
+				$strPassword = New-Object System.Collections.ArrayList
 				foreach ($i in $ListTable)
 				{
-					[Void]$strpassword.Add($i.{パスワード})
+					[Void]$strPassword.Add($i.{パスワード})
 				}
 				$Writer = New-object System.IO.StreamWriter($SaveDialog.FileNames[0],$False,[Text.Encoding]::GetEncoding("Shift_JIS"))
-				$Writer.Write(($strpassword -Join "`r`n"))
+				$Writer.Write(($strPassword -Join "`r`n"))
 				$Writer.Close()
 			})
 		}
@@ -902,7 +902,7 @@ $ComboBox1.DropDownStyle = "DropDownList"
 $ComboBox1.Add_SelectedIndexChanged({
 	if ($ComboBox1.SelectedIndex.Equals(0) -Or $ComboBox1.SelectedIndex.Equals(1))
 	{
-		$NumberBox1.Minimum = checkboxescount
+		$NumberBox1.Minimum = countCheck
 	}
 	else
 	{
@@ -1127,137 +1127,136 @@ function EditDialog($title,$text,$default,$pattern,$labelnumber)
 
 $GetRandom = New-Object System.Random
 $GeneratePassword = {
-	param($Numberofdigits,$EachCharCount,$RandomCount)
+	param($numberOfDigits,$EachCharCount,$RandomCount)
 	if ($ComboBox1.SelectedIndex.Equals(0))
 	{
-		if ($Numberofdigits -eq (checkboxescount))
+		if ($numberOfDigits -eq (countCheck))
 		{
-			$Generate_Password = Get-Random -input ([String](& $eachchars)).ToCharArray() -count $Numberofdigits
+			$Generate_Password = Get-Random -input ([String](& $eachChars)).ToCharArray() -count $numberOfDigits
 		}
 		else
 		{
-			$Generate_Password = Get-Random -input ([String](& $eachchars) + [String](& $GenerateRandomString $RandomCount)).ToCharArray() -count $Numberofdigits
+			$Generate_Password = Get-Random -input ([String](& $eachChars) + [String](& $GenerateRandomString $RandomCount)).ToCharArray() -count $numberOfDigits
 		}
 	}
 	elseif ($ComboBox1.SelectedIndex.Equals(1))
 	{
-		$Generate_Password = Get-Random -input ([String](& $eachchars)).ToCharArray() -count $Numberofdigits
+		$Generate_Password = Get-Random -input ([String](& $eachChars)).ToCharArray() -count $numberOfDigits
 	}
 	else
 	{
-		$Generate_Password = Get-Random -input ([String](& $GenerateRandomString $RandomCount)).ToCharArray() -count $Numberofdigits
+		$Generate_Password = Get-Random -input ([String](& $GenerateRandomString $RandomCount)).ToCharArray() -count $numberOfDigits
 	}
 	return [String]::Join("",$Generate_Password)
 }
 
-$eachchars = {
-	$eachchars = New-Object System.Text.StringBuilder
+$eachChars = {
+	$eachChars = New-Object System.Text.StringBuilder
 	foreach ($i in (1..$EachCharCount))
 	{
-		if ($CheckBox1.Checked) {[Void]$eachchars.Append(($strLower[$GetRandom.Next(0,$strLower.Length)]))}
-		if ($CheckBox2.Checked) {[Void]$eachchars.Append(($strUpper[$GetRandom.Next(0,$strUpper.Length)]))}
-		if ($CheckBox3.Checked) {[Void]$eachchars.Append(($strNumber[$GetRandom.Next(0,$strNumber.Length)]))}
-		if ($CheckBox4.Checked) {[Void]$eachchars.Append(($strSign[$GetRandom.Next(0,$strSign.Length)]))}
-		if ($CheckBox5.Checked -And ($i -eq 1)) {[Void]$eachchars.Append([Char]32)}
+		if ($CheckBox1.Checked) {[Void]$eachChars.Append(($strLower[$GetRandom.Next(0,$strLower.Length)]))}
+		if ($CheckBox2.Checked) {[Void]$eachChars.Append(($strUpper[$GetRandom.Next(0,$strUpper.Length)]))}
+		if ($CheckBox3.Checked) {[Void]$eachChars.Append(($strNumber[$GetRandom.Next(0,$strNumber.Length)]))}
+		if ($CheckBox4.Checked) {[Void]$eachChars.Append(($strSign[$GetRandom.Next(0,$strSign.Length)]))}
+		if ($CheckBox5.Checked -And ($i -eq 1)) {[Void]$eachChars.Append([Char]32)}
 	}
 	if ($ComboBox1.SelectedIndex.Equals(0) -Or $RandomCount -eq 0)
 	{
-		return $eachchars.ToString()
+		return $eachChars.ToString()
 	}
 	else
 	{
-		$randomchars = New-Object System.Collections.ArrayList
-		if ($CheckBox1.Checked) {[Void]$randomchars.Add(($strLower[$GetRandom.Next(0,$strLower.Length)]))}
-		if ($CheckBox2.Checked) {[Void]$randomchars.Add(($strUpper[$GetRandom.Next(0,$strUpper.Length)]))}
-		if ($CheckBox3.Checked) {[Void]$randomchars.Add(($strNumber[$GetRandom.Next(0,$strNumber.Length)]))}
-		if ($CheckBox4.Checked) {[Void]$randomchars.Add(($strSign[$GetRandom.Next(0,$strSign.Length)]))}
-		return ($eachchars.ToString() + [String]::Join("",(Get-Random -input $randomchars -count $RandomCount)))
+		$randomChars = New-Object System.Collections.ArrayList
+		if ($CheckBox1.Checked) {[Void]$randomChars.Add(($strLower[$GetRandom.Next(0,$strLower.Length)]))}
+		if ($CheckBox2.Checked) {[Void]$randomChars.Add(($strUpper[$GetRandom.Next(0,$strUpper.Length)]))}
+		if ($CheckBox3.Checked) {[Void]$randomChars.Add(($strNumber[$GetRandom.Next(0,$strNumber.Length)]))}
+		if ($CheckBox4.Checked) {[Void]$randomChars.Add(($strSign[$GetRandom.Next(0,$strSign.Length)]))}
+		return ($eachChars.ToString() + [String]::Join("",(Get-Random -input $randomChars -count $RandomCount)))
 	}
 }
 
-function transcodegenerate($type)
+function generateTransCode($type)
 {
-	$targetcount = 0
-	$codearray = New-Object System.Collections.Generic.List[System.String]
-	switch -Regex ($strChars) {"a" {$codearray.Add(' -replace "a","えー"')}}
-	switch -Regex ($strChars) {"b" {$codearray.Add(' -replace "b","びー"')}}
-	switch -Regex ($strChars) {"c" {$codearray.Add(' -replace "c","しー"')}}
-	switch -Regex ($strChars) {"d" {$codearray.Add(' -replace "d","でぃー"')}}
-	switch -Regex ($strChars) {"e" {$codearray.Add(' -replace "e","いー"')}}
-	switch -Regex ($strChars) {"f" {$codearray.Add(' -replace "f","えふ"')}}
-	switch -Regex ($strChars) {"g" {$codearray.Add(' -replace "g","じー"')}}
-	switch -Regex ($strChars) {"h" {$codearray.Add(' -replace "h","えいち"')}}
-	switch -Regex ($strChars) {"i" {$codearray.Add(' -replace "i","あい"')}}
-	switch -Regex ($strChars) {"j" {$codearray.Add(' -replace "j","じぇい"')}}
-	switch -Regex ($strChars) {"k" {$codearray.Add(' -replace "k","けー"')}}
-	switch -Regex ($strChars) {"l" {$codearray.Add(' -replace "l","える"')}}
-	switch -Regex ($strChars) {"m" {$codearray.Add(' -replace "m","えむ"')}}
-	switch -Regex ($strChars) {"n" {$codearray.Add(' -replace "n","えぬ"')}}
-	switch -Regex ($strChars) {"o" {$codearray.Add(' -replace "o","おー"')}}
-	switch -Regex ($strChars) {"p" {$codearray.Add(' -replace "p","ぴー"')}}
-	switch -Regex ($strChars) {"q" {$codearray.Add(' -replace "q","きゅー"')}}
-	switch -Regex ($strChars) {"r" {$codearray.Add(' -replace "r","あーる"')}}
-	switch -Regex ($strChars) {"s" {$codearray.Add(' -replace "s","えす"')}}
-	switch -Regex ($strChars) {"t" {$codearray.Add(' -replace "t","てぃー"')}}
-	switch -Regex ($strChars) {"u" {$codearray.Add(' -replace "u","ゆー"')}}
-	switch -Regex ($strChars) {"v" {$codearray.Add(' -replace "v","ぶい"')}}
-	switch -Regex ($strChars) {"w" {$codearray.Add(' -replace "w","だぶりゅー"')}}
-	switch -Regex ($strChars) {"x" {$codearray.Add(' -replace "x","えっくす"')}}
-	switch -Regex ($strChars) {"y" {$codearray.Add(' -replace "y","わい"')}}
-	switch -Regex ($strChars) {"z" {$codearray.Add(' -replace "z","ぜっと"')}}
-	switch -Regex ($strChars) {"0" {$codearray.Add('.ToString().Replace("0","ぜろ")')}}
-	switch -Regex ($strChars) {"1" {$codearray.Add('.ToString().Replace("1","いち")')}}
-	switch -Regex ($strChars) {"2" {$codearray.Add('.ToString().Replace("2","にー")')}}
-	switch -Regex ($strChars) {"3" {$codearray.Add('.ToString().Replace("3","さん")')}}
-	switch -Regex ($strChars) {"4" {$codearray.Add('.ToString().Replace("4","よん")')}}
-	switch -Regex ($strChars) {"5" {$codearray.Add('.ToString().Replace("5","ご")')}}
-	switch -Regex ($strChars) {"6" {$codearray.Add('.ToString().Replace("6","ろく")')}}
-	switch -Regex ($strChars) {"7" {$codearray.Add('.ToString().Replace("7","なな")')}}
-	switch -Regex ($strChars) {"8" {$codearray.Add('.ToString().Replace("8","はち")')}}
-	switch -Regex ($strChars) {"9" {$codearray.Add('.ToString().Replace("9","きゅう")')}}
-	switch -Regex ($strChars) {"'" {$codearray.Add('.ToString().Replace("''","シングルクォート")')}}
-	switch -Regex ($strChars) {"-" {$codearray.Add('.ToString().Replace("-","ハイフン")')}}
-	switch -Regex ($strChars) {"!" {$codearray.Add('.ToString().Replace("!","エクスクラメーション")')}}
-	switch -Regex ($strChars) {"""" {$codearray.Add('.ToString().Replace("""","ダブルクォート")')}}
-	switch -Regex ($strChars) {"#" {$codearray.Add('.ToString().Replace("#","番号記号")')}}
-	switch -Regex ($strChars) {"\$" {$codearray.Add('.ToString().Replace("$","ドル記号")')}}
-	switch -Regex ($strChars) {"%" {$codearray.Add('.ToString().Replace("%","パーセント")')}}
-	switch -Regex ($strChars) {"&" {$codearray.Add('.ToString().Replace("&","アンパサンド")')}}
-	switch -Regex ($strChars) {"\(" {$codearray.Add('.ToString().Replace("(","左カッコ")')}}
-	switch -Regex ($strChars) {"\)" {$codearray.Add('.ToString().Replace(")","右カッコ")')}}
-	switch -Regex ($strChars) {"\*" {$codearray.Add('.ToString().Replace("*","アスタリスク")')}}
-	switch -Regex ($strChars) {"," {$codearray.Add('.ToString().Replace(",","カンマ")')}}
-	switch -Regex ($strChars) {"\." {$codearray.Add('.ToString().Replace(".","ピリオド")')}}
-	switch -Regex ($strChars) {"/" {$codearray.Add('.ToString().Replace("/","スラッシュ")')}}
-	switch -Regex ($strChars) {":" {$codearray.Add('.ToString().Replace(":","コロン")')}}
-	switch -Regex ($strChars) {";" {$codearray.Add('.ToString().Replace(";","セミコロン")')}}
-	switch -Regex ($strChars) {"\?" {$codearray.Add('.ToString().Replace("?","クエスチョン")')}}
-	switch -Regex ($strChars) {"@" {$codearray.Add('.ToString().Replace("@","アットマーク")')}}
-	switch -Regex ($strChars) {"\[" {$codearray.Add('.ToString().Replace("[","左角カッコ")')}}
-	switch -Regex ($strChars) {"\]" {$codearray.Add('.ToString().Replace("]","右角カッコ")')}}
-	switch -Regex ($strChars) {"\^" {$codearray.Add('.ToString().Replace("^","キャレット")')}}
-	switch -Regex ($strChars) {"_" {$codearray.Add('.ToString().Replace("_","アンダースコア")')}}
-	switch -Regex ($strChars) {"``" {$codearray.Add('.ToString().Replace("``","バッククオート")')}}
-	switch -Regex ($strChars) {"{" {$codearray.Add('.ToString().Replace("{","左中カッコ")')}}
-	switch -Regex ($strChars) {"\|" {$codearray.Add('.ToString().Replace("|","パイプライン")')}}
-	switch -Regex ($strChars) {"}" {$codearray.Add('.ToString().Replace("}","右中カッコ")')}}
-	switch -Regex ($strChars) {"~" {$codearray.Add('.ToString().Replace("~","チルダ")')}}
-	switch -Regex ($strChars) {"\\" {$codearray.Add('.ToString().Replace("\","円マーク")')}}
-	switch -Regex ($strChars) {"\+" {$codearray.Add('.ToString().Replace("+","プラス")')}}
-	switch -Regex ($strChars) {"<" {$codearray.Add('.ToString().Replace("<","左カギカッコ")')}}
-	switch -Regex ($strChars) {"=" {$codearray.Add('.ToString().Replace("=","イコール")')}}
-	switch -Regex ($strChars) {">" {$codearray.Add('.ToString().Replace(">","右カギカッコ")')}}
-	switch -Regex ($strChars) {"\s" {$codearray.Add('.ToString().Replace([String][Char]32,"スペース")')}}
+	$codeArray = New-Object System.Collections.Generic.List[System.String]
+	switch -Regex ($strChars) {"a" {$codeArray.Add(' -replace "a","えー"')}}
+	switch -Regex ($strChars) {"b" {$codeArray.Add(' -replace "b","びー"')}}
+	switch -Regex ($strChars) {"c" {$codeArray.Add(' -replace "c","しー"')}}
+	switch -Regex ($strChars) {"d" {$codeArray.Add(' -replace "d","でぃー"')}}
+	switch -Regex ($strChars) {"e" {$codeArray.Add(' -replace "e","いー"')}}
+	switch -Regex ($strChars) {"f" {$codeArray.Add(' -replace "f","えふ"')}}
+	switch -Regex ($strChars) {"g" {$codeArray.Add(' -replace "g","じー"')}}
+	switch -Regex ($strChars) {"h" {$codeArray.Add(' -replace "h","えいち"')}}
+	switch -Regex ($strChars) {"i" {$codeArray.Add(' -replace "i","あい"')}}
+	switch -Regex ($strChars) {"j" {$codeArray.Add(' -replace "j","じぇい"')}}
+	switch -Regex ($strChars) {"k" {$codeArray.Add(' -replace "k","けー"')}}
+	switch -Regex ($strChars) {"l" {$codeArray.Add(' -replace "l","える"')}}
+	switch -Regex ($strChars) {"m" {$codeArray.Add(' -replace "m","えむ"')}}
+	switch -Regex ($strChars) {"n" {$codeArray.Add(' -replace "n","えぬ"')}}
+	switch -Regex ($strChars) {"o" {$codeArray.Add(' -replace "o","おー"')}}
+	switch -Regex ($strChars) {"p" {$codeArray.Add(' -replace "p","ぴー"')}}
+	switch -Regex ($strChars) {"q" {$codeArray.Add(' -replace "q","きゅー"')}}
+	switch -Regex ($strChars) {"r" {$codeArray.Add(' -replace "r","あーる"')}}
+	switch -Regex ($strChars) {"s" {$codeArray.Add(' -replace "s","えす"')}}
+	switch -Regex ($strChars) {"t" {$codeArray.Add(' -replace "t","てぃー"')}}
+	switch -Regex ($strChars) {"u" {$codeArray.Add(' -replace "u","ゆー"')}}
+	switch -Regex ($strChars) {"v" {$codeArray.Add(' -replace "v","ぶい"')}}
+	switch -Regex ($strChars) {"w" {$codeArray.Add(' -replace "w","だぶりゅー"')}}
+	switch -Regex ($strChars) {"x" {$codeArray.Add(' -replace "x","えっくす"')}}
+	switch -Regex ($strChars) {"y" {$codeArray.Add(' -replace "y","わい"')}}
+	switch -Regex ($strChars) {"z" {$codeArray.Add(' -replace "z","ぜっと"')}}
+	switch -Regex ($strChars) {"0" {$codeArray.Add('.ToString().Replace("0","ぜろ")')}}
+	switch -Regex ($strChars) {"1" {$codeArray.Add('.ToString().Replace("1","いち")')}}
+	switch -Regex ($strChars) {"2" {$codeArray.Add('.ToString().Replace("2","にー")')}}
+	switch -Regex ($strChars) {"3" {$codeArray.Add('.ToString().Replace("3","さん")')}}
+	switch -Regex ($strChars) {"4" {$codeArray.Add('.ToString().Replace("4","よん")')}}
+	switch -Regex ($strChars) {"5" {$codeArray.Add('.ToString().Replace("5","ご")')}}
+	switch -Regex ($strChars) {"6" {$codeArray.Add('.ToString().Replace("6","ろく")')}}
+	switch -Regex ($strChars) {"7" {$codeArray.Add('.ToString().Replace("7","なな")')}}
+	switch -Regex ($strChars) {"8" {$codeArray.Add('.ToString().Replace("8","はち")')}}
+	switch -Regex ($strChars) {"9" {$codeArray.Add('.ToString().Replace("9","きゅう")')}}
+	switch -Regex ($strChars) {"'" {$codeArray.Add('.ToString().Replace("''","シングルクォート")')}}
+	switch -Regex ($strChars) {"-" {$codeArray.Add('.ToString().Replace("-","ハイフン")')}}
+	switch -Regex ($strChars) {"!" {$codeArray.Add('.ToString().Replace("!","エクスクラメーション")')}}
+	switch -Regex ($strChars) {"""" {$codeArray.Add('.ToString().Replace("""","ダブルクォート")')}}
+	switch -Regex ($strChars) {"#" {$codeArray.Add('.ToString().Replace("#","番号記号")')}}
+	switch -Regex ($strChars) {"\$" {$codeArray.Add('.ToString().Replace("$","ドル記号")')}}
+	switch -Regex ($strChars) {"%" {$codeArray.Add('.ToString().Replace("%","パーセント")')}}
+	switch -Regex ($strChars) {"&" {$codeArray.Add('.ToString().Replace("&","アンパサンド")')}}
+	switch -Regex ($strChars) {"\(" {$codeArray.Add('.ToString().Replace("(","左カッコ")')}}
+	switch -Regex ($strChars) {"\)" {$codeArray.Add('.ToString().Replace(")","右カッコ")')}}
+	switch -Regex ($strChars) {"\*" {$codeArray.Add('.ToString().Replace("*","アスタリスク")')}}
+	switch -Regex ($strChars) {"," {$codeArray.Add('.ToString().Replace(",","カンマ")')}}
+	switch -Regex ($strChars) {"\." {$codeArray.Add('.ToString().Replace(".","ピリオド")')}}
+	switch -Regex ($strChars) {"/" {$codeArray.Add('.ToString().Replace("/","スラッシュ")')}}
+	switch -Regex ($strChars) {":" {$codeArray.Add('.ToString().Replace(":","コロン")')}}
+	switch -Regex ($strChars) {";" {$codeArray.Add('.ToString().Replace(";","セミコロン")')}}
+	switch -Regex ($strChars) {"\?" {$codeArray.Add('.ToString().Replace("?","クエスチョン")')}}
+	switch -Regex ($strChars) {"@" {$codeArray.Add('.ToString().Replace("@","アットマーク")')}}
+	switch -Regex ($strChars) {"\[" {$codeArray.Add('.ToString().Replace("[","左角カッコ")')}}
+	switch -Regex ($strChars) {"\]" {$codeArray.Add('.ToString().Replace("]","右角カッコ")')}}
+	switch -Regex ($strChars) {"\^" {$codeArray.Add('.ToString().Replace("^","キャレット")')}}
+	switch -Regex ($strChars) {"_" {$codeArray.Add('.ToString().Replace("_","アンダースコア")')}}
+	switch -Regex ($strChars) {"``" {$codeArray.Add('.ToString().Replace("``","バッククオート")')}}
+	switch -Regex ($strChars) {"{" {$codeArray.Add('.ToString().Replace("{","左中カッコ")')}}
+	switch -Regex ($strChars) {"\|" {$codeArray.Add('.ToString().Replace("|","パイプライン")')}}
+	switch -Regex ($strChars) {"}" {$codeArray.Add('.ToString().Replace("}","右中カッコ")')}}
+	switch -Regex ($strChars) {"~" {$codeArray.Add('.ToString().Replace("~","チルダ")')}}
+	switch -Regex ($strChars) {"\\" {$codeArray.Add('.ToString().Replace("\","円マーク")')}}
+	switch -Regex ($strChars) {"\+" {$codeArray.Add('.ToString().Replace("+","プラス")')}}
+	switch -Regex ($strChars) {"<" {$codeArray.Add('.ToString().Replace("<","左カギカッコ")')}}
+	switch -Regex ($strChars) {"=" {$codeArray.Add('.ToString().Replace("=","イコール")')}}
+	switch -Regex ($strChars) {">" {$codeArray.Add('.ToString().Replace(">","右カギカッコ")')}}
+	switch -Regex ($strChars) {"\s" {$codeArray.Add('.ToString().Replace([String][Char]32,"スペース")')}}
 	switch ($type)
 	{
-		"Simple" {return ('return (' + ("(" * ($codearray.count -1)) + '[String]::Join([char]0,[char[]]$TextBox1.Text)' + [String]::Join(")",$codearray) + ")")}
-		default {return ('return (' + ("(" * ($codearray.count -1)) + '[String]::Join([char]0,[char[]]$password)' + [String]::Join(")",$codearray) + ")")}
+		"Simple" {return ('return (' + ("(" * ($codeArray.count -1)) + '[String]::Join([char]0,[char[]]$TextBox1.Text)' + [String]::Join(")",$codeArray) + ")")}
+		default {return ('return (' + ("(" * ($codeArray.count -1)) + '[String]::Join([char]0,[char[]]$password)' + [String]::Join(")",$codeArray) + ")")}
 	}
 }
 
-function appconfig()
+function appConfig()
 {
-	. $appconfiginitial
+	. $appConfigInitial
 	If ([string]::IsNullOrEmpty($cfg_chklower)) {$Config.AppSettings.Settings.Add("chklower", $CheckBox1.Checked)} else {$cfg_chklower.Value = $CheckBox1.Checked}
 	If ([string]::IsNullOrEmpty($cfg_chkupper)) {$Config.AppSettings.Settings.Add("chkupper", $CheckBox2.Checked)} else {$cfg_chkupper.Value = $CheckBox2.Checked}
 	If ([string]::IsNullOrEmpty($cfg_chknumber)) {$Config.AppSettings.Settings.Add("chknumber", $CheckBox3.Checked)} else {$cfg_chknumber.Value = $CheckBox3.Checked}
@@ -1281,7 +1280,7 @@ function appconfig()
 	$MsgBox.Invoke("設定を保存しました。","",64)
 }
 
-function strcharscreate()
+function createStrChars()
 {
 	$strChars = New-Object System.Text.StringBuilder
 	if ($CheckBox1.Checked) {[Void]$strChars.Append($strLower)}
@@ -1292,15 +1291,15 @@ function strcharscreate()
 	return $strChars.ToString()
 }
 
-function checkboxescount()
+function countCheck()
 {
-	$CheckBoxesCount = 0
-	if ($CheckBox1.Checked) {$CheckBoxesCount ++}
-	if ($CheckBox2.Checked) {$CheckBoxesCount ++}
-	if ($CheckBox3.Checked) {$CheckBoxesCount ++}
-	if ($CheckBox4.Checked) {$CheckBoxesCount ++}
-	if ($CheckBox5.Checked) {$CheckBoxesCount ++}
-	return $CheckBoxesCount
+	$CheckesCount = 0
+	if ($CheckBox1.Checked) {$CheckesCount ++}
+	if ($CheckBox2.Checked) {$CheckesCount ++}
+	if ($CheckBox3.Checked) {$CheckesCount ++}
+	if ($CheckBox4.Checked) {$CheckesCount ++}
+	if ($CheckBox5.Checked) {$CheckesCount ++}
+	return $CheckesCount
 }
 
 $GenerateRandomString = {
@@ -1314,7 +1313,7 @@ $GenerateRandomString = {
 	return $GenerateRandom.ToString()
 }
 
-$appconfiginitial = {
+$appConfigInitial = {
 	Add-Type -AssemblyName System.Configuration
 	$Map = New-Object System.Configuration.ExeConfigurationFileMap
 	$Map.ExeConfigFilename = Join-Path $path "PasswordGenerator.config"
@@ -1343,7 +1342,7 @@ $appconfiginitial = {
 
 if ((Test-Path (Join-Path $path "PasswordGenerator.config")))
 {
-	. $appconfiginitial
+	. $appConfigInitial
 	if ($cfg_chklower.Value -eq $True) {$CheckBox1.Checked = $True} else {$CheckBox1.Checked = $False}
 	if ($cfg_chkupper.Value -eq $True) {$CheckBox2.Checked = $True} else {$CheckBox2.Checked = $False}
 	if ($cfg_chknumber.Value -eq $True) {$CheckBox3.Checked = $True} else {$CheckBox3.Checked = $False}
