@@ -403,7 +403,7 @@ $Button15.Add_Click({
 	$Pipeline = $Runspace.CreatePipeline({[Void]$Form4.ShowDialog()})
 	$Pipeline.InvokeAsync()
 	$SessionState = [System.Management.Automation.Runspaces.InitialSessionState]::CreateDefault()
-	$EntryVariable = "ComboBox1","NumberBox1","NumberBox2","NumberBox3","Checkbox5","GenerateSettingsLoad2","strChars","transCode","strLengthMax","GetRandom","countCheck","GenerateRandomString","GeneratePassword","Form4","RadioButton1","Label9","ProgressBar1","Button19"
+	$EntryVariable = "ComboBox1","NumberBox1","NumberBox2","NumberBox3","Checkbox5","GenerateSettingsLoad2","strChars","transCode","strLengthMax","GetRandom","CheckesCount","GenerateRandomString","GeneratePassword","Form4","RadioButton1","Label9","ProgressBar1","Button19"
 	$SetVariableStr = New-Object System.Collections.Generic.List[System.String]
 	foreach ($i in $EntryVariable)
 	{
