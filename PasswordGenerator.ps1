@@ -819,27 +819,24 @@ $Button16.Add_Click({
 				$Writer.Close()
 			}
 		})
-		$RunJob = {
-			$Form4 = New-Object System.Windows.Forms.Form
-			$Form4.Size = New-Object System.Drawing.Size(350,100)
-			$Form4.FormBorderStyle = "FixedSingle"
-			$Form4.TopMost = $True
-			$Form4.Text = "PasswordGenerator"
-			$Form4.ControlBox = $False
-			$Form4.StartPosition = "CenterScreen"
-			$Label9 = New-Object System.Windows.Forms.Label
-			$Label9.Location = New-Object System.Drawing.Size(20,20)
-			$Label9.Size = New-Object System.Drawing.Size(220,20)
-			$Label9.TextAlign = "MiddleLeft"
-			$Form4.Controls.Add($Label9)
-			[Void]$Form4.Show()
-			$Label9.Text = "ファイルを保存しています・・・"
-			$Label9.Update()
-			($BackJob.BeginInvoke()).AsyncWaitHandle.WaitOne()
-			[Void]$Form4.Close()
-			[System.Windows.Forms.Application]::DoEvents()
-		}
-		$RunJob.Invoke()
+		$Form4 = New-Object System.Windows.Forms.Form
+		$Form4.Size = New-Object System.Drawing.Size(350,100)
+		$Form4.FormBorderStyle = "FixedSingle"
+		$Form4.TopMost = $True
+		$Form4.Text = "PasswordGenerator"
+		$Form4.ControlBox = $False
+		$Form4.StartPosition = "CenterScreen"
+		$Label9 = New-Object System.Windows.Forms.Label
+		$Label9.Location = New-Object System.Drawing.Size(20,20)
+		$Label9.Size = New-Object System.Drawing.Size(220,20)
+		$Label9.TextAlign = "MiddleLeft"
+		$Form4.Controls.Add($Label9)
+		[Void]$Form4.Show()
+		$Label9.Text = "ファイルを保存しています・・・"
+		$Label9.Update()
+		($BackJob.BeginInvoke()).AsyncWaitHandle.WaitOne()
+		[Void]$Form4.Close()
+		[System.Windows.Forms.Application]::DoEvents()
 		$Button15.Enabled = $True
 		$Button16.Enabled = $True
 		$Button17.Enabled = $True
