@@ -547,7 +547,7 @@ $LVcol3.Text = "読み方"
 $LVcol3.Width = 400
 $ContextMenu = New-object System.Windows.Forms.ContextMenuStrip
 $ListView1.ContextMenuStrip = $ContextMenu
-$ListView1.Columns.AddRange([System.Windows.Forms.ColumnHeader[]](@($LVcol1, $LVcol2, $LVcol3)))
+$ListView1.Columns.AddRange([System.Windows.Forms.ColumnHeader[]](@($LVcol1,$LVcol2,$LVcol3)))
 $Form3.Controls.Add($ListView1)
 
 $SaveDialog = New-Object Windows.Forms.SaveFileDialog
@@ -581,43 +581,19 @@ $Button16.Add_Click({
 		$RunspacePool.Open()
 		$BackJob = [PowerShell]::Create()
 		$BackJob.RunspacePool = $RunspacePool
-		$RunJob = {
-			$Form4 = New-Object System.Windows.Forms.Form
-			$Form4.Size = New-Object System.Drawing.Size(350,100)
-			$Form4.FormBorderStyle = "FixedSingle"
-			$Form4.TopMost = $True
-			$Form4.Text = "PasswordGenerator"
-			$Form4.ControlBox = $False
-			$Form4.StartPosition = "CenterScreen"
-			$Label9 = New-Object System.Windows.Forms.Label
-			$Label9.Location = New-Object System.Drawing.Size(20,20)
-			$Label9.Size = New-Object System.Drawing.Size(220,20)
-			$Label9.TextAlign = "MiddleLeft"
-			$Form4.Controls.Add($Label9)
-			[Void]$Form4.Show()
-			$Label9.Text = "ファイルを保存しています・・・"
-			$Label9.Update()
-			($BackJob.BeginInvoke()).AsyncWaitHandle.WaitOne()
-			[Void]$Form4.Close()
-			[System.Windows.Forms.Application]::DoEvents()
-		}
-		if ($SaveDialog.FilterIndex.Equals(1))
-		{
-			$BackJob.AddScript({
+		$BackJob.AddScript({
+			if ($SaveDialog.FilterIndex.Equals(1))
+			{
 				$ListTable | Select-Object "No.","パスワード","読み方" | Export-Csv -Encoding utf8 -NoTypeInformation -Path $SaveDialog.FileNames[0]
-			})
-		}
-		elseif ($SaveDialog.FilterIndex.Equals(2))
-		{
-			$BackJob.AddScript({
+			}
+			elseif ($SaveDialog.FilterIndex.Equals(2))
+			{
 				$content = $ListTable | Select-Object "No.","パスワード","読み方" | ConvertTo-CSV -NoTypeInformation
 				$Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding($False)
 				[System.IO.File]::WriteAllLines($SaveDialog.FileNames[0], $content, $Utf8NoBomEncoding)
-			})
-		}
-		elseif ($SaveDialog.FilterIndex.Equals(3))
-		{
-			$BackJob.AddScript({
+			}
+			elseif ($SaveDialog.FilterIndex.Equals(3))
+			{
 				$Xml = New-Object System.XML.XMLDocument
 				$root = $Xml.CreateElement("Root")
 				[Void]$Xml.AppendChild($root)
@@ -640,11 +616,9 @@ $Button16.Add_Click({
 				$XmlWriter.Formatting = [System.Xml.Formatting]::Indented
 				$Xml.Save($XmlWriter)
 				$XmlWriter.Close()
-			})
-		}
-		elseif ($SaveDialog.FilterIndex.Equals(4))
-		{
-			$BackJob.AddScript({
+			}
+			elseif ($SaveDialog.FilterIndex.Equals(4))
+			{
 				Add-Type -Assembly System.ServiceModel.Web,System.Runtime.Serialization
 				$Hash = New-Object object[] $ListTable.count
 				$i = 0
@@ -695,11 +669,9 @@ $Button16.Add_Click({
 						}
 					}
 				}),$Utf8NoBomEncoding)
-			})
-		}
-		elseif ($SaveDialog.FilterIndex.Equals(5))
-		{
-			$BackJob.AddScript({
+			}
+			elseif ($SaveDialog.FilterIndex.Equals(5))
+			{
 				$head = New-Object System.Text.StringBuilder
 				[Void]$head.Append("<meta charset='utf-8'><title>パスワード一覧</title><style>")
 				[Void]$head.Append("BODY{font-family:ＭＳ ゴシック;background-color:#FFFFFF;}")
@@ -711,11 +683,9 @@ $Button16.Add_Click({
 				$content = $ListTable | ConvertTo-HTML -property "No.","パスワード","読み方" -head $head.ToString()
 				$content = $content[0..7] + (($content[8..($content.count -1)]) -replace ' ','&nbsp;')
 				[System.IO.File]::WriteAllLines($SaveDialog.FileNames[0], $content, $Utf8NoBomEncoding)
-			})
-		}
-		elseif ($SaveDialog.FilterIndex.Equals(6) -Or ($SaveDialog.FilterIndex.Equals(7) -And ($PSVersionTable.PSVersion.Major -ge 3)))
-		{
-			$BackJob.AddScript({
+			}
+			elseif ($SaveDialog.FilterIndex.Equals(6) -Or ($SaveDialog.FilterIndex.Equals(7) -And ($PSVersionTable.PSVersion.Major -ge 3)))
+			{
 				$Xaml = New-Object System.XML.XMLDocument
 				$Window = $Xaml.CreateElement('Window')
 				$Window.SetAttribute("xmlns","http://schemas.microsoft.com/winfx/2006/xaml/presentation")
@@ -836,11 +806,9 @@ $Button16.Add_Click({
 					$XpsDocumentWriter.Write($FlowDoc.DocumentPaginator)
 					$XpsDocument.Close()
 				}
-			})
-		}
-		else
-		{
-			$BackJob.AddScript({
+			}
+			else
+			{
 				$strPassword = New-Object System.Collections.ArrayList
 				foreach ($i in $ListTable)
 				{
@@ -849,7 +817,27 @@ $Button16.Add_Click({
 				$Writer = New-object System.IO.StreamWriter($SaveDialog.FileNames[0],$False,[Text.Encoding]::GetEncoding("Shift_JIS"))
 				$Writer.Write(($strPassword -Join "`r`n"))
 				$Writer.Close()
-			})
+			}
+		})
+		$RunJob = {
+			$Form4 = New-Object System.Windows.Forms.Form
+			$Form4.Size = New-Object System.Drawing.Size(350,100)
+			$Form4.FormBorderStyle = "FixedSingle"
+			$Form4.TopMost = $True
+			$Form4.Text = "PasswordGenerator"
+			$Form4.ControlBox = $False
+			$Form4.StartPosition = "CenterScreen"
+			$Label9 = New-Object System.Windows.Forms.Label
+			$Label9.Location = New-Object System.Drawing.Size(20,20)
+			$Label9.Size = New-Object System.Drawing.Size(220,20)
+			$Label9.TextAlign = "MiddleLeft"
+			$Form4.Controls.Add($Label9)
+			[Void]$Form4.Show()
+			$Label9.Text = "ファイルを保存しています・・・"
+			$Label9.Update()
+			($BackJob.BeginInvoke()).AsyncWaitHandle.WaitOne()
+			[Void]$Form4.Close()
+			[System.Windows.Forms.Application]::DoEvents()
 		}
 		$RunJob.Invoke()
 		$Button15.Enabled = $True
