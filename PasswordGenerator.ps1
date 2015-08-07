@@ -239,46 +239,46 @@ $GenerateSettingsLoad1 = @'
 	}
 '@
 $GenerateSettingsLoad2 = @'
-	$numberOfDigits = Get-Random -input ($NumberBox1.Text..$strLengthMax)
+	$NumberOfDigits = Get-Random -input ($NumberBox1.Text..$strLengthMax)
 	if ($ComboBox1.SelectedIndex.Equals(0))
 	{
 		$EachCharCount = 1
-		if ($CheckesCount -ne $numberOfDigits)
+		if ($CheckesCount -ne $NumberOfDigits)
 		{
-			$RandomCount = $numberOfDigits - $CheckesCount
+			$RandomCount = $NumberOfDigits - $CheckesCount
 		}
 	}
 	elseif ($ComboBox1.SelectedIndex.Equals(1))
 	{
 		if ($CheckBox5.Checked)
 		{
-			if ((($numberOfDigits - $CheckesCount) % ($CheckesCount -1)) -eq 0)
+			if ((($NumberOfDigits - $CheckesCount) % ($CheckesCount -1)) -eq 0)
 			{
-				$EachCharCount = ($numberOfDigits - $CheckesCount) / ($CheckesCount -1) + 1
+				$EachCharCount = ($NumberOfDigits - $CheckesCount) / ($CheckesCount -1) + 1
 				$RandomCount = 0
 			}
 			else
 			{
-				$EachCharCount = [Math]::Floor(($numberOfDigits - $CheckesCount) / ($CheckesCount -1)) + 1
-				$RandomCount = ($numberOfDigits - $CheckesCount) % ($CheckesCount -1)
+				$EachCharCount = [Math]::Floor(($NumberOfDigits - $CheckesCount) / ($CheckesCount -1)) + 1
+				$RandomCount = ($NumberOfDigits - $CheckesCount) % ($CheckesCount -1)
 			}
 		}
 		else
 		{
-			$EachCharCount = [Math]::Floor(($numberOfDigits - $CheckesCount) / ($CheckesCount)) + 1
-			if ((($numberOfDigits - $CheckesCount) % ($CheckesCount)) -eq 0)
+			$EachCharCount = [Math]::Floor(($NumberOfDigits - $CheckesCount) / ($CheckesCount)) + 1
+			if ((($NumberOfDigits - $CheckesCount) % ($CheckesCount)) -eq 0)
 			{
 				$RandomCount = 0
 			}
 			else
 			{
-				$RandomCount = ($numberOfDigits - $CheckesCount) % ($CheckesCount)
+				$RandomCount = ($NumberOfDigits - $CheckesCount) % ($CheckesCount)
 			}
 		}
 	}
 	else
 	{
-		$RandomCount = $numberOfDigits
+		$RandomCount = $NumberOfDigits
 	}
 '@
 
@@ -289,9 +289,8 @@ $Button5.Add_Click({
 	Invoke-Expression ($GenerateSettingsLoad1 -Join "`r`n")
 	Invoke-Expression ($GenerateSettingsLoad2 -Join "`r`n")
 	$strChars = createStrChars
-	$transcode = [ScriptBlock]::Create((generateTransCode "Simple"))
-	$TextBox1.Text = $GeneratePassword.Invoke($numberOfDigits,$EachCharCount,$RandomCount)
-	$TextBox2.Text = ([string]$transcode.Invoke()).Replace([char]0,",")
+	$TextBox1.Text = $GeneratePassword.Invoke($NumberOfDigits,$EachCharCount,$RandomCount)
+	$TextBox2.Text = (Invoke-Expression ((generateTransCode "Simple") -Join "`r`n")).Replace([char]0,",")
 	$Button9.Enabled = $True
 	$Button10.Enabled = $True
 	$Label11.Text = ($TextBox1.Text -creplace "[^a-z]","").Length
@@ -313,7 +312,7 @@ $Button6.Add_Click({
 	$CheckesCount = countCheck
 	Invoke-Expression ($GenerateSettingsLoad1 -Join "`r`n")
 	$strChars = createStrChars
-	$transcode = [ScriptBlock]::Create((generateTransCode))
+	$TransCode = [ScriptBlock]::Create((generateTransCode))
 	$Form3.ShowDialog()
 	[Void]$ListView1.Items.Clear()
 	$Button16.Enabled = $False
@@ -421,11 +420,11 @@ $Button15.Add_Click({
 		do
 		{
 			Invoke-Expression ($GenerateSettingsLoad2 -Join "`r`n")
-			$password = & $GeneratePassword $numberOfDigits $EachCharCount $RandomCount
+			$password = & $GeneratePassword $NumberOfDigits $EachCharCount $RandomCount
 			$ListTable[$i] = New-Object PSObject -Property @{
 				"No." = $i + 1
 				"パスワード" = $password
-				"読み方" = ([string]$transcode.Invoke()).Replace([char]0,",")
+				"読み方" = ([string]$TransCode.Invoke()).Replace([char]0,",")
 			}
 			$Form4.Text = ("パスワード生成中・・・(" + ($i + 1) + "/" + $ListTable.Count + ")")
 			switch ($RadioButton1.Checked)
@@ -545,7 +544,7 @@ $LVcol2.Width = 300
 $LVcol3 = New-Object System.Windows.Forms.ColumnHeader
 $LVcol3.Text = "読み方"
 $LVcol3.Width = 400
-$ContextMenu = New-object System.Windows.Forms.ContextMenuStrip
+$ContextMenu = New-Object System.Windows.Forms.ContextMenuStrip
 $ListView1.ContextMenuStrip = $ContextMenu
 $ListView1.Columns.AddRange([System.Windows.Forms.ColumnHeader[]](@($LVcol1,$LVcol2,$LVcol3)))
 $Form3.Controls.Add($ListView1)
@@ -601,9 +600,9 @@ $Button16.Add_Click({
 				{
 					$data = $Xml.CreateElement("Data")
 					[Void]$root.AppendChild($data)
-					$number = $Xml.CreateElement("No.")
-					$number.PSBase.InnerText = $i.{No.}
-					[Void]$data.AppendChild($number)
+					$Number = $Xml.CreateElement("No.")
+					$Number.PSBase.InnerText = $i.{No.}
+					[Void]$data.AppendChild($Number)
 					$pass = $Xml.CreateElement("パスワード")
 					$pass.PSBase.InnerText = $i.{パスワード}
 					[Void]$data.AppendChild($pass)
@@ -814,7 +813,7 @@ $Button16.Add_Click({
 				{
 					[Void]$strPassword.Add($i.{パスワード})
 				}
-				$Writer = New-object System.IO.StreamWriter($SaveDialog.FileNames[0],$False,[Text.Encoding]::GetEncoding("Shift_JIS"))
+				$Writer = New-Object System.IO.StreamWriter($SaveDialog.FileNames[0],$False,[Text.Encoding]::GetEncoding("Shift_JIS"))
 				$Writer.Write(($strPassword -Join "`r`n"))
 				$Writer.Close()
 			}
@@ -1112,25 +1111,25 @@ function EditDialog($title,$text,$default,$pattern,$labelnumber)
 
 $GetRandom = New-Object System.Random
 $GeneratePassword = {
-	param($numberOfDigits,$EachCharCount,$RandomCount)
+	param($NumberOfDigits,$EachCharCount,$RandomCount)
 	if ($ComboBox1.SelectedIndex.Equals(0))
 	{
-		if ($numberOfDigits -eq (countCheck))
+		if ($NumberOfDigits -eq (countCheck))
 		{
-			$Generate_Password = Get-Random -input ([String](& $eachChars)).ToCharArray() -count $numberOfDigits
+			$Generate_Password = Get-Random -input ([String](& $eachChars)).ToCharArray() -count $NumberOfDigits
 		}
 		else
 		{
-			$Generate_Password = Get-Random -input ([String](& $eachChars) + [String](& $GenerateRandomString $RandomCount)).ToCharArray() -count $numberOfDigits
+			$Generate_Password = Get-Random -input ([String](& $eachChars) + [String](& $GenerateRandomString $RandomCount)).ToCharArray() -count $NumberOfDigits
 		}
 	}
 	elseif ($ComboBox1.SelectedIndex.Equals(1))
 	{
-		$Generate_Password = Get-Random -input ([String](& $eachChars)).ToCharArray() -count $numberOfDigits
+		$Generate_Password = Get-Random -input ([String](& $eachChars)).ToCharArray() -count $NumberOfDigits
 	}
 	else
 	{
-		$Generate_Password = Get-Random -input ([String](& $GenerateRandomString $RandomCount)).ToCharArray() -count $numberOfDigits
+		$Generate_Password = Get-Random -input ([String](& $GenerateRandomString $RandomCount)).ToCharArray() -count $NumberOfDigits
 	}
 	return [String]::Join("",$Generate_Password)
 }
